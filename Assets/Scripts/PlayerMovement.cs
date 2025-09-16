@@ -33,102 +33,47 @@ public class PlayerMovement : MonoBehaviour
     private bool canClimb = true;
     [SerializeField] private bool isCeillingClimbing = false;
     private bool notFacing = false;
-    private Vector2 worldDirection;
-    private bool isGround = false;
-    private RaycastHit2D wallHit;
 
     void Update()
     {
         Move = Input.GetAxisRaw("Horizontal");
-
+        if (Input.GetButtonDown("Jump"))
+        {
+            if (isGrounded())
+            {
+                rb.velocity = new Vector2(rb.velocity.x, jump);
+            }
+        }
+        if (!isWallJumping && !isStickyWalking) Flip();
         WallSlide();
         WallJump();
-
-    isGround = Physics2D.Raycast(transform.position, -transform.up, 0.2f, groundLayer);
-
-    Vector2 rayOriginRight = (Vector2)transform.position + Vector2.right * 0.2f;
-    Vector2 rayOriginLeft = (Vector2)transform.position + Vector2.left * 0.2f;
-
-    RaycastHit2D rightHit = Physics2D.Raycast(rayOriginRight, -transform.up, 0.5f, groundLayer);
-    RaycastHit2D leftHit = Physics2D.Raycast(rayOriginLeft, -transform.up, 0.5f, groundLayer);
-
-    if (Mathf.Abs(Move) > 0.1f)
-    {
-        if (Move > 0)
+        StickyWalk();
+    
+        if (!isWallJumping)
         {
-            wallHit = rightHit;
-        }
-        else
-        {
-            wallHit = leftHit;
-        }
-    }
-
-    if (wallHit.collider != null && Mathf.Abs(wallHit.normal.y) < 0.9f)
-    {
-        isStickyWalking = true;
-    }
-    else
-    {
-        isStickyWalking = false;
-    }
-
-        if (isStickyWalking)
-        {
-            Debug.DrawRay(wallHit.point, wallHit.normal, Color.red);
-
-            Quaternion targetRotation = Quaternion.FromToRotation(Vector3.up, wallHit.normal);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
-
-            Vector2 tangent = Vector2.Perpendicular(wallHit.normal);
-            if (Vector2.Dot(tangent, transform.right) < 0)
+            // Only apply horizontal movement, preserve vertical velocity for jumping/gravity
+            Vector2 worldDirection = transform.right * Move;
+            
+            rb.velocity = new Vector2(speed * worldDirection.x, rb.velocity.y);
+            
+            // Only disable gravity when sticky walking, not always
+            if (isStickyWalking)
             {
-                tangent = -tangent;
-            }
-
-            if (Mathf.Abs(Move) > 0.1f)
-            {
-                rb.velocity = tangent * speed * Move;
+                rb.gravityScale = 0;
+                rb.velocity = new Vector2(speed * worldDirection.x, speed * worldDirection.y);
             }
             else
             {
-                rb.velocity = Vector2.zero;
+                rb.gravityScale = 1; // Re-enable gravity for normal movement and jumping
             }
-            rb.gravityScale = 0;
+            
+            Debug.Log($"Move: {Move}, WorldDirection: {worldDirection}, StickyWalking: {isStickyWalking}");
         }
-        else if (isGround)
-        {
-            Debug.DrawRay(transform.position, -transform.up * 0.2f, Color.green);
+    }
 
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.identity, 10f * Time.deltaTime);
-            rb.velocity = new Vector2(Move * speed, 0);
-            rb.gravityScale = 1;
-        }
-        else
-        {
-            if (Mathf.Abs(Move) > 0.1f)
-            {
-                transform.Rotate(0, 0, -Mathf.Sign(Move) * 100 * Time.deltaTime);
-            }
-
-            rb.velocity = new Vector2(Move * speed, rb.velocity.y);
-            rb.gravityScale = 1;
-        }
-
-    
-
-        // Flip logic should be here
-        if (!isStickyWalking)
-        {
-            if (Move > 0 && transform.localScale.x < 0)
-            {
-                Flip();
-            }
-            else if (Move < 0 && transform.localScale.x > 0)
-            {
-                Flip();
-            }
-        }
+    bool isCeillinged()
+    {
+        return Physics2D.OverlapCircle(ceilingCheck.position, 0.1f, stickyLayer);
     }
 
     bool isGrounded()
@@ -151,6 +96,14 @@ public class PlayerMovement : MonoBehaviour
         return Physics2D.OverlapCircle(wallCheck.position, 0.05f, stickyLayer);
     }
 
+    void StickyWalk()
+    {
+        if (isWalledSticky())
+        {
+            isStickyWalking = true;
+            transform.rotation = Quaternion.Euler(0, 0, -90);
+        }
+    }
 
     void WallSlide()
     {
