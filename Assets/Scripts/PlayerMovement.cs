@@ -71,42 +71,42 @@ public class PlayerMovement : MonoBehaviour
 
         if (!stickyJumping)
         {
-            RaycastHit2D forwardCast = Physics2D.Raycast(transform.position + littleOffset, forward, 0.4f, stickyLayer);
-            RaycastHit2D groundCast = Physics2D.Raycast(transform.position + littleOffset, -transform.up, 0.1f, stickyLayer);
-            RaycastHit2D tiltedCast = Physics2D.Raycast(transform.position + littleOffset, tilted, 0.4f, stickyLayer);
+            RaycastHit2D forwardCast = Physics2D.Raycast(transform.position + littleOffset, forward, 0.3f, stickyLayer);
+            RaycastHit2D groundCast = Physics2D.Raycast(transform.position + littleOffset, -transform.up, 0.2f, stickyLayer);
+            RaycastHit2D tiltedCast = Physics2D.Raycast(transform.position + littleOffset, tilted, 0.3f, stickyLayer);
             RaycastHit2D upCast = Physics2D.Raycast(transform.position + littleOffset, transform.up, 0.4f, stickyLayer);
             RaycastHit2D wallCast = Physics2D.Raycast(transform.position + wallOffset, rayDir * transform.right, 0.3f, stickyLayer);
-            Debug.DrawRay(transform.position + littleOffset, forward * forwardCast.distance, Color.blue); //forward
-            Debug.DrawRay(transform.position + littleOffset, -transform.up * groundCast.distance, Color.green); //ground
-            Debug.DrawRay(transform.position + littleOffset, tilted * tiltedCast.distance, Color.red); //tilted
-            Debug.DrawRay(transform.position + littleOffset, transform.up * upCast.distance, Color.black); //up
-            Debug.DrawRay(transform.position + wallOffset, rayDir * transform.right * wallCast.distance, Color.magenta); //wall
-
-            float zRotation = transform.eulerAngles.z;
+            Debug.DrawRay(transform.position + littleOffset, forward * 0.4f, Color.blue); //forward
+            Debug.DrawRay(transform.position + littleOffset, -transform.up * 0.2f, Color.green); //ground
+            Debug.DrawRay(transform.position + littleOffset, tilted * 0.4f, Color.red); //tilted
+            Debug.DrawRay(transform.position + littleOffset, transform.up * 0.4f, Color.black); //up
+            Debug.DrawRay(transform.position + wallOffset, rayDir * transform.right * 0.3f, Color.magenta); //wall
 
             if (groundCast)
             {
                 isStickyWalking = true;
-                if (isWalled())
-                {
-                    if (rb.velocity.y < 0)
-                    {
-                        transform.RotateAround(transform.position + offsets, new Vector3(0, 0, Move * 1), 90);
-                        isStickyWalking = false;
-                    }
-                }
             }
             else
             {
-                isStickyWalking = false;
+                if(!tiltedCast && !forwardCast) isStickyWalking = false;
+            }
+
+            if (isWalled() && groundCast)
+            {
+                if (rb.velocity.y < 0)
+                {
+                    transform.RotateAround(transform.position + offsets, new Vector3(0, 0, Move * 1), 90);
+                    isStickyWalking = false;
+                }
             }
 
             if (isStickyWalking)
             {
                 rb.gravityScale = 0;
-                if (!forwardCast && tiltedCast)
+                if (!forwardCast && tiltedCast && !groundCast)
                 {
                     transform.Rotate(0, 0, -Move * 90f);
+                    isStickyWalking = true;
                 }
             }
             else
@@ -114,7 +114,7 @@ public class PlayerMovement : MonoBehaviour
                 rb.gravityScale = 1;
             }
 
-            if (wallCast.collider)
+            if (wallCast)
             {
                 transform.RotateAround(transform.position + offsets, new Vector3(0, 0, Move * 1), 90);
                 isStickyWalking = true;
@@ -122,7 +122,7 @@ public class PlayerMovement : MonoBehaviour
 
             if (upCast)
             {
-                transform.RotateAround(transform.position + offsets, new Vector3(0, 0, Move * 1), 180);
+                transform.RotateAround(transform.position + offsets, new Vector3(0, 0, 1), 180);
                 isStickyWalking = true;
             }
         }

@@ -12,6 +12,12 @@ public class TetrisMovement : MonoBehaviour
     public static int height = 20;
     public static int width = 10;
     public static Transform[,] grid = new Transform[width, height];
+    [SerializeField] SpawnManager spawnManager;
+
+    void Awake()
+    {
+        spawnManager = FindObjectOfType<SpawnManager>();
+    }
 
     void Update()
     {
@@ -67,10 +73,11 @@ public class TetrisMovement : MonoBehaviour
             int roundY = Mathf.RoundToInt(children.transform.position.y);
 
             grid[roundX, roundY] = children;
+            spawnManager.blocks++;
         }
         for (int i = 0; i < 9; i++)
         {
-            if (grid[i, 7] != null)
+            if (grid[i, 17] != null)
             {
                 this.enabled = false;
                 FindObjectOfType<SpawnManager>().Switch();

@@ -1,7 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using UnityEditor.SearchService;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public enum BlockType
 {
@@ -14,13 +17,27 @@ public enum BlockType
 
 public class SpawnManager : MonoBehaviour
 {
+    [SerializeField] public Text totalBlock;
+    [SerializeField] public Button restartButton;
+    public float blocks = 0;
     public GameObject[] Tetrominoes;
     public GameObject player;
     void Start()
     {
+        blocks = 0;
         player = GameObject.Find("Player");
         player.SetActive(false);
         Spawn();
+    }
+
+    public void RestartScene()
+    {
+        SceneManager.LoadScene("Level1");
+    }
+
+    void Update()
+    {
+        totalBlock.text = "Total Blocks: " + blocks.ToString();
     }
 
     public void Spawn()
@@ -41,7 +58,7 @@ public class SpawnManager : MonoBehaviour
 
     BlockType GetRandomBlockType()
     {
-        int random = 99;
+        int random = 35;
 
         if (random < 20) return BlockType.Normal;
         else if (random < 40) return BlockType.Sticky;
@@ -72,11 +89,9 @@ public class SpawnManager : MonoBehaviour
             case BlockType.Pass:
                 Material transparentMat = new Material(renderer.material);
 
-                // Set blue color with 50% transparency
                 transparentMat.color = new Color(0f, 0f, 1f, 0.5f);
 
-                // Configure for transparency (works with Standard shader)
-                transparentMat.SetFloat("_Mode", 3); // Transparent mode
+                transparentMat.SetFloat("_Mode", 3);
                 transparentMat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
                 transparentMat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                 transparentMat.SetInt("_ZWrite", 0);
@@ -86,7 +101,6 @@ public class SpawnManager : MonoBehaviour
                 transparentMat.renderQueue = 3000;
                 renderer.material = transparentMat;
 
-                // Remove or disable collider to make it passable
                 Collider2D collider = block.GetComponent<Collider2D>();
                 if (collider != null)
                 {
@@ -103,9 +117,8 @@ public class SpawnManager : MonoBehaviour
                 renderer.material.color = Color.green;
                 PhysicsMaterial2D bouncyMaterial = new PhysicsMaterial2D("BouncyMaterial");
                 bouncyMaterial.bounciness = 0.7f;
-                bouncyMaterial.friction = 0.1f; // Low friction for better bouncing
+                bouncyMaterial.friction = 0.1f;
 
-                // Apply the physics material to the collider
                 Collider2D collider2 = block.GetComponent<Collider2D>();
                 if (collider2 != null)
                 {
