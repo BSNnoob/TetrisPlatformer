@@ -58,7 +58,7 @@ public class SpawnManager : MonoBehaviour
 
     BlockType GetRandomBlockType()
     {
-        int random = 35;
+        int random = Random.Range(0,100);
 
         if (random < 20) return BlockType.Normal;
         else if (random < 40) return BlockType.Sticky;

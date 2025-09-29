@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
@@ -44,6 +45,8 @@ public class PlayerMovement : MonoBehaviour
     public float rayDir = 1f;
     public bool rotated;
     public bool stickyJumping = false;
+    public bool grounded;
+    [SerializeField] public Animator animator;
 
     void Update()
     {
@@ -68,10 +71,12 @@ public class PlayerMovement : MonoBehaviour
         }
 
         Vector3 offsets = 0.3f * transform.up;
+        Vector3 offsets2 = 0.4f * transform.up;
 
         if (!stickyJumping)
         {
             RaycastHit2D forwardCast = Physics2D.Raycast(transform.position + littleOffset, forward, 0.3f, stickyLayer);
+            RaycastHit2D forwardGCast = Physics2D.Raycast(transform.position + littleOffset, forward, 0.3f, groundLayer);
             RaycastHit2D groundCast = Physics2D.Raycast(transform.position + littleOffset, -transform.up, 0.2f, stickyLayer);
             RaycastHit2D tiltedCast = Physics2D.Raycast(transform.position + littleOffset, tilted, 0.3f, stickyLayer);
             RaycastHit2D upCast = Physics2D.Raycast(transform.position + littleOffset, transform.up, 0.4f, stickyLayer);
@@ -88,14 +93,15 @@ public class PlayerMovement : MonoBehaviour
             }
             else
             {
-                if(!tiltedCast && !forwardCast) isStickyWalking = false;
+                if (!tiltedCast && !forwardCast) isStickyWalking = false;
             }
 
-            if (isWalled() && groundCast)
+            if (isWalled() && groundCast && !isGrounded())
             {
                 if (rb.velocity.y < 0)
                 {
-                    transform.RotateAround(transform.position + offsets, new Vector3(0, 0, Move * 1), 90);
+                    transform.RotateAround(transform.position + offsets2, new Vector3(0, 0, Move * 1), 90);
+
                     isStickyWalking = false;
                 }
             }
@@ -107,6 +113,21 @@ public class PlayerMovement : MonoBehaviour
                 {
                     transform.Rotate(0, 0, -Move * 90f);
                     isStickyWalking = true;
+                }
+                if (forwardGCast)
+                {
+                    // Block movement in the forward direction
+                    if (Move * rayDir > 0) // If trying to move forward (into the obstacle)
+                    {
+                        rb.velocity = new Vector2(0, 0); // Stop movement
+                    }
+
+                    // Only rotate down if moving in the opposite direction
+                    if (Move * rayDir < 0) // If moving away from the obstacle
+                    {
+                        transform.RotateAround(transform.position + offsets2, new Vector3(0, 0, Move), -90);
+                        isStickyWalking = false;
+                    }
                 }
             }
             else
@@ -125,6 +146,9 @@ public class PlayerMovement : MonoBehaviour
                 transform.RotateAround(transform.position + offsets, new Vector3(0, 0, 1), 180);
                 isStickyWalking = true;
             }
+
+            if (groundCast || isGrounded()) grounded = true;
+            else grounded = false;
         }
 
         if (Input.GetButtonDown("Jump"))
@@ -155,6 +179,14 @@ public class PlayerMovement : MonoBehaviour
         {
             jump = 3f;
         }
+
+        animator.SetBool("isJumping", !grounded);
+    }
+
+    private void FixedUpdate()
+    {
+        animator.SetFloat("xVelocity", Mathf.Abs(Move));
+        if (!isStickyWalking) animator.SetFloat("yVelocity", rb.velocity.y);
     }
 
     bool isGrounded()
