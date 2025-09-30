@@ -52,7 +52,7 @@ public class PlayerMovement : MonoBehaviour
     {
         Move = Input.GetAxisRaw("Horizontal");
 
-        if (!isWallJumping) Flip();
+        if (!isWallJumping && !stickyJumping) Flip();
         WallSlide();
         WallJump();
 
@@ -69,87 +69,95 @@ public class PlayerMovement : MonoBehaviour
             else
                 rb.velocity = new Vector2(speed * worldDirection.x, rb.velocity.y);
         }
-
-        Vector3 offsets = 0.3f * transform.up;
-        Vector3 offsets2 = 0.4f * transform.up;
-
-        if (!stickyJumping)
+        else
         {
-            RaycastHit2D forwardCast = Physics2D.Raycast(transform.position + littleOffset, forward, 0.3f, stickyLayer);
-            RaycastHit2D forwardGCast = Physics2D.Raycast(transform.position + littleOffset, forward, 0.3f, groundLayer);
-            RaycastHit2D groundCast = Physics2D.Raycast(transform.position + littleOffset, -transform.up, 0.2f, stickyLayer);
-            RaycastHit2D tiltedCast = Physics2D.Raycast(transform.position + littleOffset, tilted, 0.3f, stickyLayer);
-            RaycastHit2D upCast = Physics2D.Raycast(transform.position + littleOffset, transform.up, 0.4f, stickyLayer);
-            RaycastHit2D wallCast = Physics2D.Raycast(transform.position + wallOffset, rayDir * transform.right, 0.3f, stickyLayer);
-            Debug.DrawRay(transform.position + littleOffset, forward * 0.4f, Color.blue); //forward
-            Debug.DrawRay(transform.position + littleOffset, -transform.up * 0.2f, Color.green); //ground
-            Debug.DrawRay(transform.position + littleOffset, tilted * 0.4f, Color.red); //tilted
-            Debug.DrawRay(transform.position + littleOffset, transform.up * 0.4f, Color.black); //up
-            Debug.DrawRay(transform.position + wallOffset, rayDir * transform.right * 0.3f, Color.magenta); //wall
+            if(isStickyWalking && (Vector3.Angle(transform.up, Vector3.up) < 0.01f)) rb.velocity = new Vector2(speed * worldDirection.x, rb.velocity.y);
+        }
 
-            if (groundCast)
+        Vector3 offsets = 0.25f * transform.up;
+        Vector3 offsets2 = 0.35f * transform.up;
+
+
+        RaycastHit2D forwardCast = Physics2D.Raycast(transform.position + littleOffset, forward, 0.3f, stickyLayer);
+        RaycastHit2D forwardGCast = Physics2D.Raycast(transform.position + littleOffset, forward, 0.3f, groundLayer);
+        RaycastHit2D groundCast = Physics2D.Raycast(transform.position + littleOffset, -transform.up, 0.2f, stickyLayer);
+        RaycastHit2D tiltedCast = Physics2D.Raycast(transform.position + littleOffset, tilted, 0.3f, stickyLayer);
+        RaycastHit2D upCast = Physics2D.Raycast(transform.position + littleOffset, transform.up, 0.4f, stickyLayer);
+        RaycastHit2D wallCast = Physics2D.Raycast(transform.position + wallOffset, rayDir * transform.right, 0.3f, stickyLayer);
+        Debug.DrawRay(transform.position + littleOffset, forward * 0.4f, Color.blue); //forward
+        Debug.DrawRay(transform.position + littleOffset, -transform.up * 0.2f, Color.green); //ground
+        Debug.DrawRay(transform.position + littleOffset, tilted * 0.4f, Color.red); //tilted
+        Debug.DrawRay(transform.position + littleOffset, transform.up * 0.4f, Color.black); //up
+        Debug.DrawRay(transform.position + wallOffset, rayDir * transform.right * 0.3f, Color.magenta); //wall
+
+        if (groundCast)
+        {
+            isStickyWalking = true;
+        }
+        else
+        {
+            if (!tiltedCast && !forwardCast) isStickyWalking = false;
+        }
+
+        if (isWalled() && groundCast && isGrounded())
+        {
+            if (rb.velocity.y < 0)
             {
+                transform.RotateAround(transform.position + offsets2, new Vector3(0, 0, Move * 1), 90);
+
+                isStickyWalking = false;
+            }
+        }
+
+        if (isStickyWalking)
+        {
+            rb.gravityScale = 0;
+            if (!forwardCast && tiltedCast && !groundCast && !forwardGCast)
+            {
+                transform.Rotate(0, 0, -Move * 90f);
                 isStickyWalking = true;
             }
-            else
+            if (forwardGCast)
             {
-                if (!tiltedCast && !forwardCast) isStickyWalking = false;
-            }
+                float currentRotation = transform.eulerAngles.z;
+                bool isVertical = Mathf.Abs(currentRotation - 90) < 5f || Mathf.Abs(currentRotation - 270) < 5f;
 
-            if (isWalled() && groundCast && !isGrounded())
-            {
-                if (rb.velocity.y < 0)
+                if (isVertical)
                 {
-                    transform.RotateAround(transform.position + offsets2, new Vector3(0, 0, Move * 1), 90);
-
-                    isStickyWalking = false;
-                }
-            }
-
-            if (isStickyWalking)
-            {
-                rb.gravityScale = 0;
-                if (!forwardCast && tiltedCast && !groundCast)
-                {
-                    transform.Rotate(0, 0, -Move * 90f);
-                    isStickyWalking = true;
-                }
-                if (forwardGCast)
-                {
-                    // Block movement in the forward direction
-                    if (Move * rayDir > 0) // If trying to move forward (into the obstacle)
+                    if (Move * rayDir > 0)
                     {
-                        rb.velocity = new Vector2(0, 0); // Stop movement
+                        rb.velocity = new Vector2(0, 0);
                     }
 
-                    // Only rotate down if moving in the opposite direction
-                    if (Move * rayDir < 0) // If moving away from the obstacle
+                    if (Move * rayDir < 0)
                     {
-                        transform.RotateAround(transform.position + offsets2, new Vector3(0, 0, Move), -90);
+                        transform.RotateAround(transform.position + offsets, new Vector3(0, 0, Move), -90);
                         isStickyWalking = false;
                     }
                 }
             }
-            else
-            {
-                rb.gravityScale = 1;
-            }
-
-            if (wallCast)
-            {
-                transform.RotateAround(transform.position + offsets, new Vector3(0, 0, Move * 1), 90);
-                isStickyWalking = true;
-            }
-
-            if (upCast)
-            {
-                transform.RotateAround(transform.position + offsets, new Vector3(0, 0, 1), 180);
-                isStickyWalking = true;
-            }
-
-            if (groundCast || isGrounded()) grounded = true;
-            else grounded = false;
         }
+        else
+        {
+            transform.eulerAngles = Vector3.zero;
+            rb.gravityScale = 1;
+        }
+
+        if (wallCast)
+        {
+            transform.RotateAround(transform.position + offsets, new Vector3(0, 0, Move * 1), 90);
+            isStickyWalking = true;
+        }
+
+        if (upCast)
+        {
+            transform.RotateAround(transform.position + offsets, new Vector3(0, 0, 1), 180);
+            isStickyWalking = true;
+        }
+
+        if (groundCast || isGrounded()) grounded = true;
+        else grounded = false;
+
 
         if (Input.GetButtonDown("Jump"))
         {
@@ -191,7 +199,7 @@ public class PlayerMovement : MonoBehaviour
 
     bool isGrounded()
     {
-        return Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
+        return Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
     }
 
     bool isGroundedHighJump()
@@ -201,7 +209,7 @@ public class PlayerMovement : MonoBehaviour
 
     bool isWalled()
     {
-        return Physics2D.OverlapCircle(wallCheck.position, 0.2f, wallLayer);
+        return Physics2D.OverlapCircle(wallCheck.position, 0.3f, groundLayer);
     }
 
     bool isWalledSticky()

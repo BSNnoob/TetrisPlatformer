@@ -42,7 +42,7 @@ public class TetrisMovement : MonoBehaviour
 
         if (ValidFall())
         {
-            fallTime = Input.GetKey(KeyCode.S) ? 0.1f : 1f;
+            fallTime = Input.GetKey(KeyCode.S) ? 0.1f : 0.5f;
             fallTimer -= Time.deltaTime;
             if (fallTimer <= 0)
             {
