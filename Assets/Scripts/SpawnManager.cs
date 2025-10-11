@@ -36,6 +36,10 @@ public class SpawnManager : MonoBehaviour
     
     // Preview system
     [SerializeField] public Transform[] previewPositions; // 3 positions for preview
+    [SerializeField] public Transform holdPosition; // Position for hold panel
+    
+    // Sprite system
+    [SerializeField] public BlockSpriteManager blockSpriteManager;
     
     public float blocks = 0;
     public GameObject[] Tetrominoes;
@@ -43,6 +47,12 @@ public class SpawnManager : MonoBehaviour
     
     private Queue<PieceData> nextPiecesQueue = new Queue<PieceData>();
     private List<GameObject> previewObjects = new List<GameObject>();
+    private GameObject holdPreviewObject;
+    
+    // Hold system
+    private PieceData heldPiece = null;
+    private GameObject currentTetromino = null;
+    private bool canHold = true; // Prevents holding multiple times per piece
     
     void Start()
     {
@@ -70,6 +80,12 @@ public class SpawnManager : MonoBehaviour
     void Update()
     {
         totalBlock.text = "Total Blocks: " + blocks.ToString();
+        
+        // Hold functionality with Down Arrow key
+        if (Input.GetKeyDown(KeyCode.DownArrow) && canHold && currentTetromino != null)
+        {
+            HoldCurrentPiece();
+        }
     }
 
     public void Spawn()
@@ -83,11 +99,92 @@ public class SpawnManager : MonoBehaviour
         nextPiecesQueue.Enqueue(new PieceData(randomIndex, randomType));
         
         // Spawn the piece with its predetermined block type
-        GameObject newBlock = Instantiate(Tetrominoes[nextPiece.pieceIndex], transform.position, Quaternion.identity);
-        ApplyBlockType(newBlock, nextPiece.blockType);
+        currentTetromino = Instantiate(Tetrominoes[nextPiece.pieceIndex], transform.position, Quaternion.identity);
+        ApplyBlockType(currentTetromino, nextPiece.blockType);
+        
+        // Store the piece data in the tetromino for later reference
+        TetrominoData tetrominoData = currentTetromino.AddComponent<TetrominoData>();
+        tetrominoData.pieceData = nextPiece;
+        
+        // Reset hold ability for new piece
+        canHold = true;
         
         // Update the preview
         UpdatePreview();
+    }
+    
+    void HoldCurrentPiece()
+    {
+        if (currentTetromino == null) return;
+        
+        // Get the current piece data
+        TetrominoData tetrominoData = currentTetromino.GetComponent<TetrominoData>();
+        if (tetrominoData == null) return;
+        
+        PieceData currentPieceData = tetrominoData.pieceData;
+        
+        // Destroy the current tetromino
+        Destroy(currentTetromino);
+        currentTetromino = null;
+        
+        // Prevent holding again until next piece
+        canHold = false;
+        
+        if (heldPiece == null)
+        {
+            // No piece in hold, store current and spawn next from queue
+            heldPiece = currentPieceData;
+            UpdateHoldPreview();
+            Spawn();
+        }
+        else
+        {
+            // Swap with held piece
+            PieceData temp = heldPiece;
+            heldPiece = currentPieceData;
+            UpdateHoldPreview();
+            
+            // Spawn the previously held piece
+            currentTetromino = Instantiate(Tetrominoes[temp.pieceIndex], transform.position, Quaternion.identity);
+            ApplyBlockType(currentTetromino, temp.blockType);
+            
+            // Store the piece data
+            TetrominoData newTetrominoData = currentTetromino.AddComponent<TetrominoData>();
+            newTetrominoData.pieceData = temp;
+            
+            // IMPORTANT: Do NOT reset canHold here - piece was already held once
+        }
+    }
+    
+    void UpdateHoldPreview()
+    {
+        // Clear existing hold preview
+        if (holdPreviewObject != null)
+        {
+            Destroy(holdPreviewObject);
+            holdPreviewObject = null;
+        }
+        
+        // Create new hold preview if there's a held piece
+        if (heldPiece != null && holdPosition != null)
+        {
+            holdPreviewObject = Instantiate(Tetrominoes[heldPiece.pieceIndex], holdPosition.position, Quaternion.identity);
+            holdPreviewObject.transform.SetParent(holdPosition);
+            holdPreviewObject.transform.localScale = Vector3.one * 0.5f; // Scale down for preview
+            
+            // Disable physics and scripts on preview
+            Rigidbody2D rb = holdPreviewObject.GetComponent<Rigidbody2D>();
+            if (rb != null) rb.simulated = false;
+            
+            MonoBehaviour[] scripts = holdPreviewObject.GetComponents<MonoBehaviour>();
+            foreach (var script in scripts)
+            {
+                script.enabled = false;
+            }
+            
+            // Apply the block type
+            ApplyBlockType(holdPreviewObject, heldPiece.blockType);
+        }
     }
     
     void UpdatePreview()
@@ -122,7 +219,7 @@ public class SpawnManager : MonoBehaviour
                     script.enabled = false;
                 }
                 
-                // Apply the SAME block type that will be used when spawned
+                // Apply colors to preview (without block type functionality)
                 ApplyBlockType(preview, pieceData.blockType);
                 
                 previewObjects.Add(preview);
@@ -139,11 +236,17 @@ public class SpawnManager : MonoBehaviour
         {
             ApplyColor(children.gameObject, blockType);
         }
+        
+        // Update sprites based on block type
+        if (blockSpriteManager != null)
+        {
+            blockSpriteManager.UpdateBlockSprites(newBlock, blockType);
+        }
     }
 
     BlockType GetRandomBlockType()
     {
-        int random = Random.Range(0,100);
+        int random = 30;
 
         if (random < 20) return BlockType.Normal;
         else if (random < 40) return BlockType.Sticky;
@@ -213,4 +316,10 @@ public class SpawnManager : MonoBehaviour
                 break;
         }
     }
+}
+
+// Helper component to store piece data on spawned tetrominoes
+public class TetrominoData : MonoBehaviour
+{
+    public PieceData pieceData;
 }

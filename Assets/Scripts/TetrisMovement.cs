@@ -13,10 +13,12 @@ public class TetrisMovement : MonoBehaviour
     public static int width = 10;
     public static Transform[,] grid = new Transform[width, height];
     [SerializeField] SpawnManager spawnManager;
+    [SerializeField] BlockSpriteManager blockSpriteManager;
 
     void Awake()
     {
         spawnManager = FindObjectOfType<SpawnManager>();
+        blockSpriteManager = FindObjectOfType<BlockSpriteManager>();
     }
 
     void Update()
@@ -27,6 +29,15 @@ public class TetrisMovement : MonoBehaviour
             if (!ValidGrid())
             {
                 transform.RotateAround(transform.TransformPoint(rotationPoint), new Vector3(0, 0, 1), -90);
+            }
+            else
+            {
+                // Update sprites after successful rotation
+                TetrominoData data = GetComponent<TetrominoData>();
+                if (blockSpriteManager != null && data != null)
+                {
+                    blockSpriteManager.UpdateBlockSprites(gameObject, data.pieceData.blockType);
+                }
             }
         }
         else if (Input.GetKeyDown(KeyCode.A))
