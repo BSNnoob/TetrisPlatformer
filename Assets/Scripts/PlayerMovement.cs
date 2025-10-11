@@ -90,7 +90,7 @@ public class PlayerMovement : MonoBehaviour
         Debug.DrawRay(transform.position + littleOffset, transform.up * 0.4f, Color.black); //up
         Debug.DrawRay(transform.position + wallOffset, rayDir * transform.right * 0.3f, Color.magenta); //wall
 
-        if (groundCast)
+        if (groundCast && !stickyJumping)
         {
             isStickyWalking = true;
         }
@@ -112,7 +112,7 @@ public class PlayerMovement : MonoBehaviour
         if (isStickyWalking)
         {
             rb.gravityScale = 0;
-            if (!forwardCast && tiltedCast && !groundCast && !forwardGCast)
+            if (!forwardCast && tiltedCast && !groundCast && !forwardGCast && !stickyJumping)
             {
                 transform.Rotate(0, 0, -Move * 90f);
                 isStickyWalking = true;
@@ -143,13 +143,13 @@ public class PlayerMovement : MonoBehaviour
             rb.gravityScale = 1;
         }
 
-        if (wallCast)
+        if (wallCast && !stickyJumping)
         {
             transform.RotateAround(transform.position + offsets, new Vector3(0, 0, Move * 1), 90);
             isStickyWalking = true;
         }
 
-        if (upCast)
+        if (upCast && !stickyJumping)
         {
             transform.RotateAround(transform.position + offsets, new Vector3(0, 0, 1), 180);
             isStickyWalking = true;
