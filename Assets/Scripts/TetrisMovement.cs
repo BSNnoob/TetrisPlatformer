@@ -23,6 +23,13 @@ public class TetrisMovement : MonoBehaviour
 
     void Update()
     {
+        // Continuously update sprites while falling
+        TetrominoData data = GetComponent<TetrominoData>();
+        if (blockSpriteManager != null && data != null)
+        {
+            blockSpriteManager.UpdateFallingTetromino(gameObject, data.pieceData.blockType);
+        }
+        
         if (Input.GetKeyDown(KeyCode.W))
         {
             transform.RotateAround(transform.TransformPoint(rotationPoint), new Vector3(0, 0, 1), 90);
@@ -32,11 +39,14 @@ public class TetrisMovement : MonoBehaviour
             }
             else
             {
-                // Update sprites after successful rotation
-                TetrominoData data = GetComponent<TetrominoData>();
-                if (blockSpriteManager != null && data != null)
+                // Snap blocks to grid positions and reset their rotation
+                foreach (Transform child in transform)
                 {
-                    blockSpriteManager.UpdateBlockSprites(gameObject, data.pieceData.blockType);
+                    Vector3 pos = child.position;
+                    child.position = new Vector3(Mathf.Round(pos.x), Mathf.Round(pos.y), Mathf.Round(pos.z));
+                    
+                    // Reset rotation so sprites stay upright
+                    child.rotation = Quaternion.identity;
                 }
             }
         }
@@ -78,14 +88,34 @@ public class TetrisMovement : MonoBehaviour
 
     void AddToGrid()
     {
+        // First, add all blocks to grid
         foreach (Transform children in transform)
         {
             int roundX = Mathf.RoundToInt(children.transform.position.x);
             int roundY = Mathf.RoundToInt(children.transform.position.y);
-
             grid[roundX, roundY] = children;
             spawnManager.blocks++;
         }
+        
+        // Then update sprites by checking grid
+        if (blockSpriteManager != null)
+        {
+            foreach (Transform children in transform)
+            {
+                int roundX = Mathf.RoundToInt(children.transform.position.x);
+                int roundY = Mathf.RoundToInt(children.transform.position.y);
+                
+                // Update this block
+                blockSpriteManager.UpdateBlockSprite(roundX, roundY, grid, width, height);
+                
+                // Update neighbors
+                if (roundY + 1 < height) blockSpriteManager.UpdateBlockSprite(roundX, roundY + 1, grid, width, height);
+                if (roundY - 1 >= 0) blockSpriteManager.UpdateBlockSprite(roundX, roundY - 1, grid, width, height);
+                if (roundX - 1 >= 0) blockSpriteManager.UpdateBlockSprite(roundX - 1, roundY, grid, width, height);
+                if (roundX + 1 < width) blockSpriteManager.UpdateBlockSprite(roundX + 1, roundY, grid, width, height);
+            }
+        }
+        
         for (int i = 0; i < 9; i++)
         {
             if (grid[i, 17] != null)

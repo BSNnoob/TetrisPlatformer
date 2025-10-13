@@ -219,8 +219,11 @@ public class SpawnManager : MonoBehaviour
                     script.enabled = false;
                 }
                 
-                // Apply colors to preview (without block type functionality)
-                ApplyBlockType(preview, pieceData.blockType);
+                // Apply colors to preview WITHOUT sprite updates (just color)
+                foreach (Transform children in preview.transform)
+                {
+                    ApplyColor(children.gameObject, pieceData.blockType);
+                }
                 
                 previewObjects.Add(preview);
             }
@@ -237,10 +240,10 @@ public class SpawnManager : MonoBehaviour
             ApplyColor(children.gameObject, blockType);
         }
         
-        // Update sprites based on block type
+        // Update sprites for falling tetromino
         if (blockSpriteManager != null)
         {
-            blockSpriteManager.UpdateBlockSprites(newBlock, blockType);
+            blockSpriteManager.UpdateFallingTetromino(newBlock, blockType);
         }
     }
 

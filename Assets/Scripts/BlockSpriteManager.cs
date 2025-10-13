@@ -40,46 +40,93 @@ public class BlockSpriteManager : MonoBehaviour
     [Header("Bouncy Block Sprites (Green)")]
     [SerializeField] public BlockSprites bouncySprites;
     
-    public void UpdateBlockSprites(GameObject tetromino, BlockType blockType)
+    // Update a single block's sprite by checking the grid around it
+    public void UpdateBlockSprite(int x, int y, Transform[,] grid, int width, int height)
     {
-        // Get all blocks in the tetromino
-        Transform[] blocks = tetromino.GetComponentsInChildren<Transform>();
-        List<Vector3> blockPositions = new List<Vector3>();
-        List<Transform> blockTransforms = new List<Transform>();
+        if (grid[x, y] == null) return;
         
-        foreach (Transform block in blocks)
+        Transform block = grid[x, y];
+        
+        // Get the block type from the layer
+        BlockType blockType = GetBlockTypeFromLayer(block.gameObject.layer);
+        BlockSprites spriteSet = GetSpriteSetForBlockType(blockType);
+        
+        // Check neighbors in the grid - simple array checks
+        bool hasTop = (y + 1 < height) && grid[x, y + 1] != null;
+        bool hasBottom = (y - 1 >= 0) && grid[x, y - 1] != null;
+        bool hasLeft = (x - 1 >= 0) && grid[x - 1, y] != null;
+        bool hasRight = (x + 1 < width) && grid[x + 1, y] != null;
+        
+        Debug.Log($"Block at ({x},{y}): Top={hasTop}, Bottom={hasBottom}, Left={hasLeft}, Right={hasRight}");
+        
+        // Get or add sprite renderer
+        SpriteRenderer spriteRenderer = block.GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null)
         {
-            if (block != tetromino.transform) // Skip parent
+            spriteRenderer = block.gameObject.AddComponent<SpriteRenderer>();
+        }
+        
+        // Assign sprite
+        spriteRenderer.sprite = GetSpriteForEdges(spriteSet, hasTop, hasBottom, hasLeft, hasRight);
+        spriteRenderer.sortingOrder = 1;
+    }
+    
+    // Update sprites for a falling tetromino (before it's in grid)
+    public void UpdateFallingTetromino(GameObject tetromino, BlockType blockType)
+    {
+        BlockSprites spriteSet = GetSpriteSetForBlockType(blockType);
+        Transform[] allChildren = tetromino.GetComponentsInChildren<Transform>();
+        
+        Debug.Log($"=== Updating Tetromino with {allChildren.Length - 1} blocks ===");
+        
+        // Build dictionary of block positions for fast lookup
+        Dictionary<Vector2Int, Transform> positionMap = new Dictionary<Vector2Int, Transform>();
+        foreach (Transform child in allChildren)
+        {
+            if (child != tetromino.transform)
             {
-                blockPositions.Add(block.position);
-                blockTransforms.Add(block);
+                int x = Mathf.RoundToInt(child.position.x);
+                int y = Mathf.RoundToInt(child.position.y);
+                Vector2Int pos = new Vector2Int(x, y);
+                
+                Debug.Log($"Child '{child.name}' at actual pos ({child.position.x}, {child.position.y}) rounded to ({x}, {y})");
+                
+                if (positionMap.ContainsKey(pos))
+                {
+                    Debug.LogError($"DUPLICATE POSITION! {pos} already has block {positionMap[pos].name}, trying to add {child.name}");
+                }
+                else
+                {
+                    positionMap.Add(pos, child);
+                }
             }
         }
         
-        // Get the appropriate sprite set for this block type
-        BlockSprites spriteSet = GetSpriteSetForBlockType(blockType);
+        Debug.Log($"Position map has {positionMap.Count} unique positions");
         
-        // Update sprite for each block based on neighbors
-        for (int i = 0; i < blockTransforms.Count; i++)
+        // Update each block
+        foreach (var kvp in positionMap)
         {
-            Vector3 pos = blockPositions[i];
+            Vector2Int pos = kvp.Key;
+            Transform child = kvp.Value;
             
-            // Check for neighbors in 4 directions
-            bool hasTop = HasBlockAt(blockPositions, pos + Vector3.up);
-            bool hasBottom = HasBlockAt(blockPositions, pos + Vector3.down);
-            bool hasLeft = HasBlockAt(blockPositions, pos + Vector3.left);
-            bool hasRight = HasBlockAt(blockPositions, pos + Vector3.right);
+            // Check if neighbors exist within the tetromino
+            bool hasTop = positionMap.ContainsKey(new Vector2Int(pos.x, pos.y + 1));
+            bool hasBottom = positionMap.ContainsKey(new Vector2Int(pos.x, pos.y - 1));
+            bool hasLeft = positionMap.ContainsKey(new Vector2Int(pos.x - 1, pos.y));
+            bool hasRight = positionMap.ContainsKey(new Vector2Int(pos.x + 1, pos.y));
             
-            // Get the sprite renderer
-            SpriteRenderer spriteRenderer = blockTransforms[i].GetComponent<SpriteRenderer>();
+            Debug.Log($"Block '{child.name}' at ({pos.x},{pos.y}): Neighbors - Top={hasTop}, Bottom={hasBottom}, Left={hasLeft}, Right={hasRight}");
+            
+            // Get or add sprite renderer
+            SpriteRenderer spriteRenderer = child.GetComponent<SpriteRenderer>();
             if (spriteRenderer == null)
             {
-                spriteRenderer = blockTransforms[i].gameObject.AddComponent<SpriteRenderer>();
+                spriteRenderer = child.gameObject.AddComponent<SpriteRenderer>();
             }
             
-            // Assign appropriate sprite based on exposed edges
             spriteRenderer.sprite = GetSpriteForEdges(spriteSet, hasTop, hasBottom, hasLeft, hasRight);
-            spriteRenderer.sortingOrder = 1; // Make sure sprites render properly
+            spriteRenderer.sortingOrder = 1;
         }
     }
     
@@ -102,16 +149,17 @@ public class BlockSpriteManager : MonoBehaviour
         }
     }
     
-    bool HasBlockAt(List<Vector3> positions, Vector3 targetPos)
+    BlockType GetBlockTypeFromLayer(int layer)
     {
-        foreach (Vector3 pos in positions)
+        switch (layer)
         {
-            if (Vector3.Distance(pos, targetPos) < 0.1f) // Small threshold for floating point comparison
-            {
-                return true;
-            }
+            case 7: return BlockType.Normal;
+            case 8: return BlockType.Sticky;
+            case 9: return BlockType.Pass;
+            case 10: return BlockType.HighJump;
+            case 11: return BlockType.Bouncy;
+            default: return BlockType.Normal;
         }
-        return false;
     }
     
     Sprite GetSpriteForEdges(BlockSprites spriteSet, bool hasTop, bool hasBottom, bool hasLeft, bool hasRight)
@@ -125,40 +173,42 @@ public class BlockSpriteManager : MonoBehaviour
         int exposedCount = (topExposed ? 1 : 0) + (bottomExposed ? 1 : 0) + 
                           (leftExposed ? 1 : 0) + (rightExposed ? 1 : 0);
         
-        // All edges exposed (single block)
+        // All edges exposed (single block) - fallback to center if missing
         if (exposedCount == 4)
-            return spriteSet.singleBlockSprite;
+            return spriteSet.singleBlockSprite != null ? spriteSet.singleBlockSprite : spriteSet.centerSprite;
         
         // Three edges exposed
         if (exposedCount == 3)
         {
-            if (!topExposed) return spriteSet.bottomLeftRightSprite;
-            if (!bottomExposed) return spriteSet.topLeftRightSprite;
-            if (!leftExposed) return spriteSet.topBottomRightSprite;
-            if (!rightExposed) return spriteSet.topBottomLeftSprite;
+            if (!topExposed && spriteSet.bottomLeftRightSprite != null) return spriteSet.bottomLeftRightSprite;
+            if (!bottomExposed && spriteSet.topLeftRightSprite != null) return spriteSet.topLeftRightSprite;
+            if (!leftExposed && spriteSet.topBottomRightSprite != null) return spriteSet.topBottomRightSprite;
+            if (!rightExposed && spriteSet.topBottomLeftSprite != null) return spriteSet.topBottomLeftSprite;
+            return spriteSet.centerSprite;
         }
         
         // Two edges exposed
         if (exposedCount == 2)
         {
             // Opposite edges
-            if (topExposed && bottomExposed) return spriteSet.topBottomSprite;
-            if (leftExposed && rightExposed) return spriteSet.leftRightSprite;
+            if (topExposed && bottomExposed && spriteSet.topBottomSprite != null) return spriteSet.topBottomSprite;
+            if (leftExposed && rightExposed && spriteSet.leftRightSprite != null) return spriteSet.leftRightSprite;
+            if (leftExposed && rightExposed) return spriteSet.centerSprite;
             
             // Adjacent edges (corners)
-            if (topExposed && leftExposed) return spriteSet.topLeftSprite;
-            if (topExposed && rightExposed) return spriteSet.topRightSprite;
-            if (bottomExposed && leftExposed) return spriteSet.bottomLeftSprite;
-            if (bottomExposed && rightExposed) return spriteSet.bottomRightSprite;
+            if (topExposed && leftExposed && spriteSet.topLeftSprite != null) return spriteSet.topLeftSprite;
+            if (topExposed && rightExposed && spriteSet.topRightSprite != null) return spriteSet.topRightSprite;
+            if (bottomExposed && leftExposed && spriteSet.bottomLeftSprite != null) return spriteSet.bottomLeftSprite;
+            if (bottomExposed && rightExposed && spriteSet.bottomRightSprite != null) return spriteSet.bottomRightSprite;
         }
         
         // One edge exposed
         if (exposedCount == 1)
         {
-            if (topExposed) return spriteSet.topSprite;
-            if (bottomExposed) return spriteSet.bottomSprite;
-            if (leftExposed) return spriteSet.leftSprite;
-            if (rightExposed) return spriteSet.rightSprite;
+            if (topExposed && spriteSet.topSprite != null) return spriteSet.topSprite;
+            if (bottomExposed && spriteSet.bottomSprite != null) return spriteSet.bottomSprite;
+            if (leftExposed && spriteSet.leftSprite != null) return spriteSet.leftSprite;
+            if (rightExposed && spriteSet.rightSprite != null) return spriteSet.rightSprite;
         }
         
         // No edges exposed (center block)

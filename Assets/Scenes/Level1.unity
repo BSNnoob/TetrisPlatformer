@@ -253,21 +253,21 @@ MonoBehaviour:
     topBottomRightSprite: {fileID: 0}
     singleBlockSprite: {fileID: 0}
   stickySprites:
-    centerSprite: {fileID: 0}
-    topSprite: {fileID: 0}
-    bottomSprite: {fileID: 0}
-    leftSprite: {fileID: 0}
-    rightSprite: {fileID: 0}
-    topLeftSprite: {fileID: 0}
-    topRightSprite: {fileID: 0}
-    bottomLeftSprite: {fileID: 0}
-    bottomRightSprite: {fileID: 0}
-    topBottomSprite: {fileID: 0}
-    leftRightSprite: {fileID: 0}
-    topLeftRightSprite: {fileID: 0}
-    bottomLeftRightSprite: {fileID: 0}
-    topBottomLeftSprite: {fileID: 0}
-    topBottomRightSprite: {fileID: 0}
+    centerSprite: {fileID: -550919245, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
+    topSprite: {fileID: -786119222, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
+    bottomSprite: {fileID: -732076844, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
+    leftSprite: {fileID: 1122396978, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
+    rightSprite: {fileID: 1967580048, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
+    topLeftSprite: {fileID: -115800285, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
+    topRightSprite: {fileID: 1169555713, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
+    bottomLeftSprite: {fileID: 1522656242, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
+    bottomRightSprite: {fileID: -107133295, guid: 288c5f60698616340849e7bf0d652c24, type: 3}
+    topBottomSprite: {fileID: -636043635, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
+    leftRightSprite: {fileID: 1476131363, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
+    topLeftRightSprite: {fileID: 1405275248, guid: 288c5f60698616340849e7bf0d652c24, type: 3}
+    bottomLeftRightSprite: {fileID: -763499549, guid: 288c5f60698616340849e7bf0d652c24, type: 3}
+    topBottomLeftSprite: {fileID: -1592964895, guid: 288c5f60698616340849e7bf0d652c24, type: 3}
+    topBottomRightSprite: {fileID: -1409234957, guid: 288c5f60698616340849e7bf0d652c24, type: 3}
     singleBlockSprite: {fileID: 0}
   passSprites:
     centerSprite: {fileID: 0}
