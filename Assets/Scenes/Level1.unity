@@ -236,22 +236,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   normalSprites:
-    centerSprite: {fileID: 0}
-    topSprite: {fileID: 0}
-    bottomSprite: {fileID: 0}
-    leftSprite: {fileID: 0}
-    rightSprite: {fileID: 0}
-    topLeftSprite: {fileID: 0}
-    topRightSprite: {fileID: 0}
-    bottomLeftSprite: {fileID: 0}
-    bottomRightSprite: {fileID: 0}
-    topBottomSprite: {fileID: 0}
-    leftRightSprite: {fileID: 0}
-    topLeftRightSprite: {fileID: 0}
-    bottomLeftRightSprite: {fileID: 0}
-    topBottomLeftSprite: {fileID: 0}
-    topBottomRightSprite: {fileID: 0}
-    singleBlockSprite: {fileID: 0}
+    centerSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    topSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    bottomSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    leftSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    rightSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    topLeftSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    topRightSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    bottomLeftSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    bottomRightSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    topBottomSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    leftRightSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    topLeftRightSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    bottomLeftRightSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    topBottomLeftSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    topBottomRightSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    singleBlockSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
   stickySprites:
     centerSprite: {fileID: -550919245, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
     topSprite: {fileID: -786119222, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
@@ -270,55 +270,55 @@ MonoBehaviour:
     topBottomRightSprite: {fileID: -1409234957, guid: 288c5f60698616340849e7bf0d652c24, type: 3}
     singleBlockSprite: {fileID: 0}
   passSprites:
-    centerSprite: {fileID: 0}
-    topSprite: {fileID: 0}
-    bottomSprite: {fileID: 0}
-    leftSprite: {fileID: 0}
-    rightSprite: {fileID: 0}
-    topLeftSprite: {fileID: 0}
-    topRightSprite: {fileID: 0}
-    bottomLeftSprite: {fileID: 0}
-    bottomRightSprite: {fileID: 0}
-    topBottomSprite: {fileID: 0}
-    leftRightSprite: {fileID: 0}
-    topLeftRightSprite: {fileID: 0}
-    bottomLeftRightSprite: {fileID: 0}
-    topBottomLeftSprite: {fileID: 0}
-    topBottomRightSprite: {fileID: 0}
+    centerSprite: {fileID: 2084140404, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    topSprite: {fileID: 1278544999, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    bottomSprite: {fileID: -36649912, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    leftSprite: {fileID: 1118521700, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    rightSprite: {fileID: -406182154, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    topLeftSprite: {fileID: 959364302, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    topRightSprite: {fileID: -417537610, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    bottomLeftSprite: {fileID: 473000896, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    bottomRightSprite: {fileID: 2022110058, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    topBottomSprite: {fileID: -843529751, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    leftRightSprite: {fileID: 307686070, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    topLeftRightSprite: {fileID: -910827184, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    bottomLeftRightSprite: {fileID: 1504557347, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    topBottomLeftSprite: {fileID: 1258618499, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
+    topBottomRightSprite: {fileID: 873191943, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
     singleBlockSprite: {fileID: 0}
   highJumpSprites:
-    centerSprite: {fileID: 0}
-    topSprite: {fileID: 0}
-    bottomSprite: {fileID: 0}
-    leftSprite: {fileID: 0}
-    rightSprite: {fileID: 0}
-    topLeftSprite: {fileID: 0}
-    topRightSprite: {fileID: 0}
-    bottomLeftSprite: {fileID: 0}
-    bottomRightSprite: {fileID: 0}
-    topBottomSprite: {fileID: 0}
-    leftRightSprite: {fileID: 0}
-    topLeftRightSprite: {fileID: 0}
-    bottomLeftRightSprite: {fileID: 0}
-    topBottomLeftSprite: {fileID: 0}
-    topBottomRightSprite: {fileID: 0}
+    centerSprite: {fileID: -1259288389, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    topSprite: {fileID: -1000203146, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    bottomSprite: {fileID: -1594029485, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    leftSprite: {fileID: -46851373, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    rightSprite: {fileID: 1022888402, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    topLeftSprite: {fileID: -130978584, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    topRightSprite: {fileID: -382240626, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    bottomLeftSprite: {fileID: -382240626, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    bottomRightSprite: {fileID: -1875407080, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    topBottomSprite: {fileID: -130978584, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    leftRightSprite: {fileID: -382240626, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    topLeftRightSprite: {fileID: -382240626, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    bottomLeftRightSprite: {fileID: 728498736, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    topBottomLeftSprite: {fileID: 1942332368, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    topBottomRightSprite: {fileID: -94362768, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
     singleBlockSprite: {fileID: 0}
   bouncySprites:
-    centerSprite: {fileID: 0}
-    topSprite: {fileID: 0}
-    bottomSprite: {fileID: 0}
-    leftSprite: {fileID: 0}
-    rightSprite: {fileID: 0}
-    topLeftSprite: {fileID: 0}
-    topRightSprite: {fileID: 0}
-    bottomLeftSprite: {fileID: 0}
-    bottomRightSprite: {fileID: 0}
-    topBottomSprite: {fileID: 0}
-    leftRightSprite: {fileID: 0}
-    topLeftRightSprite: {fileID: 0}
-    bottomLeftRightSprite: {fileID: 0}
-    topBottomLeftSprite: {fileID: 0}
-    topBottomRightSprite: {fileID: 0}
+    centerSprite: {fileID: 1563882704, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    topSprite: {fileID: 1608529820, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    bottomSprite: {fileID: 1745063864, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    leftSprite: {fileID: -1063272134, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    rightSprite: {fileID: 1977737158, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    topLeftSprite: {fileID: 92863975, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    topRightSprite: {fileID: 752314004, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    bottomLeftSprite: {fileID: 1168057824, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    bottomRightSprite: {fileID: 1024661312, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    topBottomSprite: {fileID: 1536010359, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    leftRightSprite: {fileID: -1564458379, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    topLeftRightSprite: {fileID: 971503975, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    bottomLeftRightSprite: {fileID: -1432804680, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    topBottomLeftSprite: {fileID: -727557242, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
+    topBottomRightSprite: {fileID: -389988364, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
     singleBlockSprite: {fileID: 0}
 --- !u!4 &102117097
 Transform:
@@ -381,7 +381,8 @@ MonoBehaviour:
   - {fileID: 9069024474216921502, guid: 72716cb6170848d4f89af37cab7395ed, type: 3}
   - {fileID: 7058895880865740344, guid: 7fc2236e41ae65e4e9c200022f8ac8e8, type: 3}
   - {fileID: 9036073337158982175, guid: d1118bb1973ccb74fba595ad289c7483, type: 3}
-  player: {fileID: 0}
+  player: {fileID: 1066653692}
+  timer: {fileID: 1165432862}
 --- !u!4 &173109864
 Transform:
   m_ObjectHideFlags: 0
@@ -862,6 +863,86 @@ Transform:
   m_Father: {fileID: 1066653696}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &870086251
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 870086254}
+  - component: {fileID: 870086253}
+  - component: {fileID: 870086252}
+  m_Layer: 5
+  m_Name: Timer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &870086252
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 870086251}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 14
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 10
+    m_MaxSize: 40
+    m_Alignment: 4
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: 
+--- !u!222 &870086253
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 870086251}
+  m_CullTransparentMesh: 1
+--- !u!224 &870086254
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 870086251}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1073189347}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 203.5, y: 104}
+  m_SizeDelta: {x: 160, y: 30}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1066653692
 GameObject:
   m_ObjectHideFlags: 0
@@ -1175,6 +1256,7 @@ RectTransform:
   m_Children:
   - {fileID: 1464474881}
   - {fileID: 1157116943}
+  - {fileID: 870086254}
   m_Father: {fileID: 0}
   m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1348,6 +1430,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1157116942}
   m_CullTransparentMesh: 1
+--- !u!1 &1165432862
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1165432864}
+  - component: {fileID: 1165432863}
+  m_Layer: 0
+  m_Name: TimerManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1165432863
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1165432862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f94334bef1d21f4c9b09080bd1d08e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  timerText: {fileID: 870086252}
+--- !u!4 &1165432864
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1165432862}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 326.63052, y: 135.72649, z: -2.6648657}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 17
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1175995590
 GameObject:
   m_ObjectHideFlags: 0
