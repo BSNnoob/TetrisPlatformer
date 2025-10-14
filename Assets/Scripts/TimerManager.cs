@@ -17,7 +17,6 @@ public class TimerManager : MonoBehaviour
         if (remainingTime <= 0)
         {
             FindObjectOfType<SpawnManager>().SwitchToTetris();
-            FindObjectOfType<SpawnManager>().Spawn();
         }
     }
 }

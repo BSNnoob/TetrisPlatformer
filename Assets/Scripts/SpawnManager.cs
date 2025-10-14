@@ -35,6 +35,7 @@ public class SpawnManager : MonoBehaviour
     [SerializeField] public Transform[] previewPositions;
     [SerializeField] public Transform holdPosition;
     [SerializeField] public BlockSpriteManager blockSpriteManager;
+    [SerializeField] public GameObject startingPoint;
 
     public float blocks = 0;
     public GameObject[] Tetrominoes;
@@ -133,7 +134,6 @@ public class SpawnManager : MonoBehaviour
 
             TetrominoData newTetrominoData = currentTetromino.AddComponent<TetrominoData>();
             newTetrominoData.pieceData = temp;
-
         }
     }
 
@@ -160,7 +160,15 @@ public class SpawnManager : MonoBehaviour
                 script.enabled = false;
             }
 
-            ApplyBlockType(holdPreviewObject, heldPiece.blockType);
+            foreach (Transform children in holdPreviewObject.transform)
+            {
+                ApplyColor(children.gameObject, heldPiece.blockType);
+            }
+            
+            if (blockSpriteManager != null)
+            {
+                blockSpriteManager.UpdateFallingTetromino(holdPreviewObject, heldPiece.blockType);
+            }
         }
     }
 
@@ -196,6 +204,11 @@ public class SpawnManager : MonoBehaviour
                 foreach (Transform children in preview.transform)
                 {
                     ApplyColor(children.gameObject, pieceData.blockType);
+                }
+                
+                if (blockSpriteManager != null)
+                {
+                    blockSpriteManager.UpdateFallingTetromino(preview, pieceData.blockType);
                 }
 
                 previewObjects.Add(preview);
@@ -234,7 +247,7 @@ public class SpawnManager : MonoBehaviour
         if (checkPoint == 6) checkPoint = 12;
         else if (checkPoint == 12) checkPoint = 18;
 
-        TimerManager.remainingTime = 5f;
+        TimerManager.remainingTime = 15f;
         player.SetActive(true);
         timer.SetActive(true);
     }
@@ -242,7 +255,14 @@ public class SpawnManager : MonoBehaviour
     public void SwitchToTetris()
     {
         player.SetActive(false);
+        TetrisMovement.grid[Mathf.RoundToInt(player.transform.position.x), Mathf.RoundToInt(player.transform.position.y + 1f)] = startingPoint.transform;
+        Vector3 targetPosition = new Vector3(
+        Mathf.RoundToInt(player.transform.position.x),
+        Mathf.RoundToInt(player.transform.position.y + 1f),
+        0);
+        GameObject newStartingPoint = Instantiate(startingPoint, targetPosition, Quaternion.identity);
         timer.SetActive(false);
+        Spawn();
     }
 
     void ApplyColor(GameObject block, BlockType blockType)

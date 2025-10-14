@@ -33,7 +33,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] public LayerMask highJumpLayer;
     [SerializeField] public Transform ceilingCheck;
     private bool isStickyWalking = false;
-    public float jump = 3f;
+    public float jump = 6f;
     private bool isFacingRight = true;
     private bool isRight;
     private bool canClimb = true;
@@ -185,7 +185,7 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            jump = 3f;
+            jump = 6f;
         }
 
         animator.SetBool("isJumping", !grounded);
