@@ -78,30 +78,39 @@ public class BlockSpriteManager : MonoBehaviour
         BlockSprites spriteSet = GetSpriteSetForBlockType(blockType);
         Transform[] allChildren = tetromino.GetComponentsInChildren<Transform>();
         
-        // Build dictionary of block positions for fast lookup
+        // Build dictionary of LOCAL positions relative to each other
         Dictionary<Vector2Int, Transform> positionMap = new Dictionary<Vector2Int, Transform>();
+        
+        // First pass: collect all block positions
+        List<Transform> blockList = new List<Transform>();
         foreach (Transform child in allChildren)
         {
             if (child != tetromino.transform)
             {
-                int x = Mathf.RoundToInt(child.position.x);
-                int y = Mathf.RoundToInt(child.position.y);
-                Vector2Int pos = new Vector2Int(x, y);
-                
-                if (!positionMap.ContainsKey(pos))
-                {
-                    positionMap.Add(pos, child);
-                }
+                blockList.Add(child);
             }
         }
         
-        // Update each block
+        // Second pass: calculate relative positions
+        foreach (Transform child in blockList)
+        {
+            int x = Mathf.RoundToInt(child.position.x);
+            int y = Mathf.RoundToInt(child.position.y);
+            Vector2Int pos = new Vector2Int(x, y);
+            
+            if (!positionMap.ContainsKey(pos))
+            {
+                positionMap.Add(pos, child);
+            }
+        }
+        
+        // Update each block based on neighbors within the tetromino
         foreach (var kvp in positionMap)
         {
             Vector2Int pos = kvp.Key;
             Transform child = kvp.Value;
             
-            // Check if neighbors exist within the tetromino
+            // Check if neighbors exist within THIS tetromino piece
             bool hasTop = positionMap.ContainsKey(new Vector2Int(pos.x, pos.y + 1));
             bool hasBottom = positionMap.ContainsKey(new Vector2Int(pos.x, pos.y - 1));
             bool hasLeft = positionMap.ContainsKey(new Vector2Int(pos.x - 1, pos.y));
@@ -116,6 +125,36 @@ public class BlockSpriteManager : MonoBehaviour
             
             spriteRenderer.sprite = GetSpriteForEdges(spriteSet, hasTop, hasBottom, hasLeft, hasRight);
             spriteRenderer.sortingOrder = 1;
+        }
+    }
+    
+    // Update sprites for preview pieces (all edges exposed)
+    public void UpdatePreviewSprites(GameObject tetromino, BlockType blockType)
+    {
+        BlockSprites spriteSet = GetSpriteSetForBlockType(blockType);
+        if (spriteSet == null) return;
+        
+        Transform[] allChildren = tetromino.GetComponentsInChildren<Transform>();
+        
+        foreach (Transform child in allChildren)
+        {
+            if (child != tetromino.transform)
+            {
+                // Get or add sprite renderer
+                SpriteRenderer spriteRenderer = child.GetComponent<SpriteRenderer>();
+                if (spriteRenderer == null)
+                {
+                    spriteRenderer = child.gameObject.AddComponent<SpriteRenderer>();
+                }
+                
+                // All edges exposed for preview - use single block sprite or fallback
+                Sprite previewSprite = spriteSet.singleBlockSprite != null ? 
+                                      spriteSet.singleBlockSprite : 
+                                      spriteSet.centerSprite;
+                
+                spriteRenderer.sprite = previewSprite;
+                spriteRenderer.sortingOrder = 1;
+            }
         }
     }
     

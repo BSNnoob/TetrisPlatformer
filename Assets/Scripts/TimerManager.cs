@@ -16,6 +16,7 @@ public class TimerManager : MonoBehaviour
 
         if (remainingTime <= 0)
         {
+            if (SpawnManager.checkPoint != 18)
             FindObjectOfType<SpawnManager>().SwitchToTetris();
         }
     }

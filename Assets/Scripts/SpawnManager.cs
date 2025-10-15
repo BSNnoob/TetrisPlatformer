@@ -35,7 +35,6 @@ public class SpawnManager : MonoBehaviour
     [SerializeField] public Transform[] previewPositions;
     [SerializeField] public Transform holdPosition;
     [SerializeField] public BlockSpriteManager blockSpriteManager;
-    [SerializeField] public GameObject startingPoint;
 
     public float blocks = 0;
     public GameObject[] Tetrominoes;
@@ -160,6 +159,7 @@ public class SpawnManager : MonoBehaviour
                 script.enabled = false;
             }
 
+            // Apply colors and sprites
             foreach (Transform children in holdPreviewObject.transform)
             {
                 ApplyColor(children.gameObject, heldPiece.blockType);
@@ -201,6 +201,7 @@ public class SpawnManager : MonoBehaviour
                     script.enabled = false;
                 }
 
+                // Apply colors and sprites
                 foreach (Transform children in preview.transform)
                 {
                     ApplyColor(children.gameObject, pieceData.blockType);
@@ -255,14 +256,108 @@ public class SpawnManager : MonoBehaviour
     public void SwitchToTetris()
     {
         player.SetActive(false);
-        TetrisMovement.grid[Mathf.RoundToInt(player.transform.position.x), Mathf.RoundToInt(player.transform.position.y + 1f)] = startingPoint.transform;
-        Vector3 targetPosition = new Vector3(
-        Mathf.RoundToInt(player.transform.position.x),
-        Mathf.RoundToInt(player.transform.position.y + 1f),
-        0);
-        GameObject newStartingPoint = Instantiate(startingPoint, targetPosition, Quaternion.identity);
         timer.SetActive(false);
+        
+        // Place 2x2 blocks around player position
+        PlaceBlocksAroundPlayer();
+        
         Spawn();
+    }
+    
+    void PlaceBlocksAroundPlayer()
+    {
+        // Get player position
+        Vector3 playerPos = player.transform.position;
+        int playerX = Mathf.RoundToInt(playerPos.x);
+        int playerY = Mathf.RoundToInt(playerPos.y);
+        
+        Debug.Log($"Player position: ({playerX}, {playerY})");
+        
+        // Place 2x2 blocks around the player (forming a protective border)
+        // Top-left, top-right, bottom-left, bottom-right
+        List<Vector2Int> blockPositions = new List<Vector2Int>
+        {
+            new Vector2Int(playerX - 1, playerY + 1),  // Top-left
+            new Vector2Int(playerX, playerY + 1),      // Top-right
+            new Vector2Int(playerX - 1, playerY),      // Bottom-left
+            new Vector2Int(playerX, playerY)           // Bottom-right
+        };
+        
+        int blocksPlaced = 0;
+        foreach (Vector2Int pos in blockPositions)
+        {
+            Debug.Log($"Trying to place block at ({pos.x}, {pos.y})");
+            
+            // Check if position is valid and empty
+            if (pos.x >= 0 && pos.x < TetrisMovement.width && 
+                pos.y >= 0 && pos.y < TetrisMovement.height)
+            {
+                if (TetrisMovement.grid[pos.x, pos.y] == null)
+                {
+                    // Create a block at this position
+                    GameObject block = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    block.transform.position = new Vector3(pos.x, pos.y, 0);
+                    block.name = "PlayerProtectionBlock";
+                    
+                    // Apply normal block properties
+                    block.layer = 7; // Normal layer
+                    Renderer renderer = block.GetComponent<Renderer>();
+                    if (renderer != null)
+                    {
+                        renderer.material.color = Color.gray;
+                    }
+                    
+                    // Add sprite
+                    SpriteRenderer spriteRenderer = block.AddComponent<SpriteRenderer>();
+                    if (spriteRenderer != null)
+                    {
+                        spriteRenderer.sortingOrder = 1;
+                    }
+                    
+                    // Add to grid
+                    TetrisMovement.grid[pos.x, pos.y] = block.transform;
+                    blocksPlaced++;
+                    
+                    Debug.Log($"Block placed at ({pos.x}, {pos.y})");
+                    
+                    // Update sprite based on neighbors
+                    if (blockSpriteManager != null)
+                    {
+                        blockSpriteManager.UpdateBlockSprite(pos.x, pos.y, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
+                    }
+                }
+                else
+                {
+                    Debug.Log($"Position ({pos.x}, {pos.y}) already occupied");
+                }
+            }
+            else
+            {
+                Debug.Log($"Position ({pos.x}, {pos.y}) out of bounds");
+            }
+        }
+        
+        Debug.Log($"Total blocks placed: {blocksPlaced}");
+        
+        // Update neighboring blocks' sprites
+        if (blockSpriteManager != null)
+        {
+            foreach (Vector2Int pos in blockPositions)
+            {
+                if (pos.x >= 0 && pos.x < TetrisMovement.width && pos.y >= 0 && pos.y < TetrisMovement.height)
+                {
+                    // Update neighbors
+                    if (pos.y + 1 < TetrisMovement.height) 
+                        blockSpriteManager.UpdateBlockSprite(pos.x, pos.y + 1, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
+                    if (pos.y - 1 >= 0) 
+                        blockSpriteManager.UpdateBlockSprite(pos.x, pos.y - 1, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
+                    if (pos.x - 1 >= 0) 
+                        blockSpriteManager.UpdateBlockSprite(pos.x - 1, pos.y, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
+                    if (pos.x + 1 < TetrisMovement.width) 
+                        blockSpriteManager.UpdateBlockSprite(pos.x + 1, pos.y, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
+                }
+            }
+        }
     }
 
     void ApplyColor(GameObject block, BlockType blockType)
