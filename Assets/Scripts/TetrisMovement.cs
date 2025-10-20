@@ -92,6 +92,7 @@ public class TetrisMovement : MonoBehaviour
             int roundY = Mathf.RoundToInt(children.transform.position.y);
             grid[roundX, roundY] = children;
             spawnManager.blocks++;
+            Debug.Log($"TetrisMovement.AddToGrid: placed block at ({roundX},{roundY})");
         }
         
         if (blockSpriteManager != null)
@@ -115,10 +116,13 @@ public class TetrisMovement : MonoBehaviour
             if (grid[i, SpawnManager.checkPoint] != null)
             {
                 this.enabled = false;
+                Debug.Log("TetrisMovement.AddToGrid: checkpoint reached — switching to platformer mode");
                 FindObjectOfType<SpawnManager>().Switch();
                 return;
             }
         }
+
+        Debug.Log("TetrisMovement.AddToGrid: spawning next tetromino");
         FindObjectOfType<SpawnManager>().Spawn();
     }
 

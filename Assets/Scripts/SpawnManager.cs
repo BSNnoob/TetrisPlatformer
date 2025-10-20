@@ -35,6 +35,7 @@ public class SpawnManager : MonoBehaviour
     [SerializeField] public Transform[] previewPositions;
     [SerializeField] public Transform holdPosition;
     [SerializeField] public BlockSpriteManager blockSpriteManager;
+    [SerializeField] public Sprite protectionBlockSprite;
 
     public float blocks = 0;
     public GameObject[] Tetrominoes;
@@ -77,14 +78,19 @@ public class SpawnManager : MonoBehaviour
     {
         totalBlock.text = "Total Blocks: " + blocks.ToString();
 
-        if (Input.GetKeyDown(KeyCode.DownArrow) && canHold && currentTetromino != null)
+        // Only allow hold mechanic when player is not active (i.e., in Tetris mode)
+        if (player != null && !player.activeInHierarchy)
         {
-            HoldCurrentPiece();
+            if (Input.GetKeyDown(KeyCode.DownArrow) && canHold && currentTetromino != null)
+            {
+                HoldCurrentPiece();
+            }
         }
     }
 
     public void Spawn()
     {
+        Debug.Log("SpawnManager.Spawn: called. currentTetromino=" + (currentTetromino != null));
         PieceData nextPiece = nextPiecesQueue.Dequeue();
 
         int randomIndex = Random.Range(0, Tetrominoes.Length);
@@ -98,6 +104,8 @@ public class SpawnManager : MonoBehaviour
         tetrominoData.pieceData = nextPiece;
 
         canHold = true;
+
+    Debug.Log($"SpawnManager.Spawn: spawned pieceIndex={nextPiece.pieceIndex} blockType={nextPiece.blockType}");
 
         UpdatePreview();
     }
@@ -159,7 +167,6 @@ public class SpawnManager : MonoBehaviour
                 script.enabled = false;
             }
 
-            // Apply colors and sprites
             foreach (Transform children in holdPreviewObject.transform)
             {
                 ApplyColor(children.gameObject, heldPiece.blockType);
@@ -201,7 +208,6 @@ public class SpawnManager : MonoBehaviour
                     script.enabled = false;
                 }
 
-                // Apply colors and sprites
                 foreach (Transform children in preview.transform)
                 {
                     ApplyColor(children.gameObject, pieceData.blockType);
@@ -247,21 +253,93 @@ public class SpawnManager : MonoBehaviour
     {
         if (checkPoint == 6) checkPoint = 12;
         else if (checkPoint == 12) checkPoint = 18;
+        else if (checkPoint == 18) checkPoint = 24;
 
         TimerManager.remainingTime = 15f;
+        DisablePlayerProtectionBlocks();
+
         player.SetActive(true);
         timer.SetActive(true);
+
+        // Enable camera follow/zoom for platformer mode if a CameraController exists
+        CameraController camCtrlEnable = FindObjectOfType<CameraController>();
+        if (camCtrlEnable != null && player != null)
+        {
+            camCtrlEnable.EnablePlatformerMode(player.transform);
+        }
+    }
+
+    void DisablePlayerProtectionBlocks()
+    {
+        int disabledCount = 0;
+
+        // Find all marker components (includes inactive objects)
+        PlayerProtectionBlock[] comps = Resources.FindObjectsOfTypeAll<PlayerProtectionBlock>();
+        foreach (var comp in comps)
+        {
+            if (comp == null) continue;
+            GameObject go = comp.gameObject;
+            if (go == null) continue;
+
+            Vector3 pos = go.transform.position;
+            int x = Mathf.RoundToInt(pos.x);
+            int y = Mathf.RoundToInt(pos.y);
+
+            if (x >= 0 && x < TetrisMovement.width && y >= 0 && y < TetrisMovement.height)
+            {
+                if (TetrisMovement.grid[x, y] != null && TetrisMovement.grid[x, y].gameObject == go)
+                {
+                    TetrisMovement.grid[x, y] = null;
+                }
+            }
+
+            go.SetActive(false);
+            disabledCount++;
+        }
+
+        // Fallback: disable any GameObjects named "PlayerProtectionBlock"
+        GameObject[] all = Resources.FindObjectsOfTypeAll<GameObject>();
+        foreach (var go in all)
+        {
+            if (go == null) continue;
+            if (go.name != "PlayerProtectionBlock") continue;
+            if (go.GetComponent<PlayerProtectionBlock>() != null) continue; // already handled
+
+            Vector3 pos = go.transform.position;
+            int x = Mathf.RoundToInt(pos.x);
+            int y = Mathf.RoundToInt(pos.y);
+
+            if (x >= 0 && x < TetrisMovement.width && y >= 0 && y < TetrisMovement.height)
+            {
+                if (TetrisMovement.grid[x, y] != null && TetrisMovement.grid[x, y].gameObject == go)
+                {
+                    TetrisMovement.grid[x, y] = null;
+                }
+            }
+
+            go.SetActive(false);
+            disabledCount++;
+        }
+
+        Debug.Log($"DisablePlayerProtectionBlocks: disabled {disabledCount} objects");
     }
 
     public void SwitchToTetris()
     {
         player.SetActive(false);
         timer.SetActive(false);
-        
-        // Place 2x2 blocks around player position
+        DestroyPlayerProtectionBlocks();
+
         PlaceBlocksAroundPlayer();
-        
+
         Spawn();
+
+        // Disable camera follow/zoom and return to Tetris view size
+        CameraController camCtrlDisable = FindObjectOfType<CameraController>();
+        if (camCtrlDisable != null)
+        {
+            camCtrlDisable.DisablePlatformerMode();
+        }
     }
     
     void PlaceBlocksAroundPlayer()
@@ -294,26 +372,36 @@ public class SpawnManager : MonoBehaviour
             {
                 if (TetrisMovement.grid[pos.x, pos.y] == null)
                 {
-                    // Create a block at this position
-                    GameObject block = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    // Create a block at this position as a simple GameObject with SpriteRenderer
+                    GameObject block = new GameObject("PlayerProtectionBlock");
                     block.transform.position = new Vector3(pos.x, pos.y, 0);
-                    block.name = "PlayerProtectionBlock";
-                    
+
                     // Apply normal block properties
                     block.layer = 7; // Normal layer
-                    Renderer renderer = block.GetComponent<Renderer>();
-                    if (renderer != null)
-                    {
-                        renderer.material.color = Color.gray;
-                    }
-                    
-                    // Add sprite
+
+                    // Use SpriteRenderer directly (BlockSpriteManager will assign the correct sprite)
                     SpriteRenderer spriteRenderer = block.AddComponent<SpriteRenderer>();
-                    if (spriteRenderer != null)
+                    spriteRenderer.sortingOrder = 1;
+                    if (protectionBlockSprite != null)
                     {
-                        spriteRenderer.sortingOrder = 1;
+                        spriteRenderer.sprite = protectionBlockSprite;
+                    }
+                    else
+                    {
+                        spriteRenderer.color = Color.gray;
                     }
                     
+                    // Add a 2D BoxCollider so physics/overlap checks behave like other blocks (optional)
+                    BoxCollider2D box = block.AddComponent<BoxCollider2D>();
+                    if (box != null)
+                    {
+                        box.isTrigger = false;
+                    }
+                    
+                    // Add to grid
+                    // Add marker component so we can find and remove these blocks reliably
+                    block.AddComponent<PlayerProtectionBlock>();
+
                     // Add to grid
                     TetrisMovement.grid[pos.x, pos.y] = block.transform;
                     blocksPlaced++;
@@ -339,14 +427,12 @@ public class SpawnManager : MonoBehaviour
         
         Debug.Log($"Total blocks placed: {blocksPlaced}");
         
-        // Update neighboring blocks' sprites
         if (blockSpriteManager != null)
         {
             foreach (Vector2Int pos in blockPositions)
             {
                 if (pos.x >= 0 && pos.x < TetrisMovement.width && pos.y >= 0 && pos.y < TetrisMovement.height)
                 {
-                    // Update neighbors
                     if (pos.y + 1 < TetrisMovement.height) 
                         blockSpriteManager.UpdateBlockSprite(pos.x, pos.y + 1, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
                     if (pos.y - 1 >= 0) 
@@ -355,6 +441,84 @@ public class SpawnManager : MonoBehaviour
                         blockSpriteManager.UpdateBlockSprite(pos.x - 1, pos.y, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
                     if (pos.x + 1 < TetrisMovement.width) 
                         blockSpriteManager.UpdateBlockSprite(pos.x + 1, pos.y, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
+                }
+            }
+        }
+    }
+
+    void DestroyPlayerProtectionBlocks()
+    {
+        int removedCount = 0;
+
+        PlayerProtectionBlock[] protectionComponents = Resources.FindObjectsOfTypeAll<PlayerProtectionBlock>();
+        Debug.Log($"DestroyPlayerProtectionBlocks: found {protectionComponents.Length} PlayerProtectionBlock components");
+
+        foreach (PlayerProtectionBlock comp in protectionComponents)
+        {
+            if (comp == null) continue;
+            GameObject block = comp.gameObject;
+            if (block == null) continue;
+
+            Debug.Log($"DestroyPlayerProtectionBlocks: removing marked block '{block.name}' active={block.activeInHierarchy} at {block.transform.position}");
+
+            Vector3 pos = block.transform.position;
+            int x = Mathf.RoundToInt(pos.x);
+            int y = Mathf.RoundToInt(pos.y);
+
+            if (x >= 0 && x < TetrisMovement.width && y >= 0 && y < TetrisMovement.height)
+            {
+                if (TetrisMovement.grid[x, y] != null && TetrisMovement.grid[x, y].gameObject == block)
+                {
+                    TetrisMovement.grid[x, y] = null;
+                    Debug.Log($"DestroyPlayerProtectionBlocks: cleared grid[{x},{y}]");
+                }
+            }
+
+            DestroyImmediate(block);
+            removedCount++;
+        }
+
+        GameObject[] allGameObjects = Resources.FindObjectsOfTypeAll<GameObject>();
+        int fallbackRemoved = 0;
+        foreach (GameObject go in allGameObjects)
+        {
+            if (go == null) continue;
+            if (go.name != "PlayerProtectionBlock") continue;
+
+            if (go.GetComponent<PlayerProtectionBlock>() != null) continue;
+
+            Vector3 pos = go.transform.position;
+            int x = Mathf.RoundToInt(pos.x);
+            int y = Mathf.RoundToInt(pos.y);
+
+            if (x >= 0 && x < TetrisMovement.width && y >= 0 && y < TetrisMovement.height)
+            {
+                if (TetrisMovement.grid[x, y] != null && TetrisMovement.grid[x, y].gameObject == go)
+                {
+                    TetrisMovement.grid[x, y] = null;
+                }
+            }
+
+            DestroyImmediate(go);
+            fallbackRemoved++;
+        }
+
+        if (blockSpriteManager != null && player != null)
+        {
+            Vector3 playerPos = player.transform.position;
+            int px = Mathf.RoundToInt(playerPos.x);
+            int py = Mathf.RoundToInt(playerPos.y);
+
+            for (int dx = -2; dx <= 2; dx++)
+            {
+                for (int dy = -2; dy <= 2; dy++)
+                {
+                    int nx = px + dx;
+                    int ny = py + dy;
+                    if (nx >= 0 && nx < TetrisMovement.width && ny >= 0 && ny < TetrisMovement.height)
+                    {
+                        blockSpriteManager.UpdateBlockSprite(nx, ny, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
+                    }
                 }
             }
         }

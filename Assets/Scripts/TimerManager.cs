@@ -10,14 +10,17 @@ public class TimerManager : MonoBehaviour
 
     void Update()
     {
-        remainingTime -= Time.deltaTime;
-        int seconds = Mathf.FloorToInt(remainingTime);
-        timerText.text = string.Format("{00}", seconds);
+        if (SpawnManager.checkPoint != 24)
+        {
+            remainingTime -= Time.deltaTime;
+        }
+            int seconds = Mathf.FloorToInt(remainingTime);
+            timerText.text = string.Format("{00}", seconds);
 
         if (remainingTime <= 0)
         {
-            if (SpawnManager.checkPoint != 18)
-            FindObjectOfType<SpawnManager>().SwitchToTetris();
+            if (SpawnManager.checkPoint != 24)
+                FindObjectOfType<SpawnManager>().SwitchToTetris();
         }
     }
 }

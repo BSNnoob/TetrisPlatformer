@@ -47,12 +47,23 @@ public class BlockSpriteManager : MonoBehaviour
         if (grid[x, y] == null) return;
         
         Transform block = grid[x, y];
+        if (block == null || block.gameObject == null) return;
+
+        // If this is a player protection block, don't override its sprite
+        if (block.gameObject.GetComponent<PlayerProtectionBlock>() != null)
+        {
+            return;
+        }
         
         // Get the block type from the layer
         BlockType blockType = GetBlockTypeFromLayer(block.gameObject.layer);
         BlockSprites spriteSet = GetSpriteSetForBlockType(blockType);
         
-        if (spriteSet == null || spriteSet.centerSprite == null) return;
+        if (spriteSet == null) 
+        {
+            Debug.LogWarning($"No sprite set found for block type {blockType}");
+            return;
+        }
         
         // Check neighbors in the grid - simple array checks
         bool hasTop = (y + 1 < height) && grid[x, y + 1] != null;
@@ -64,12 +75,34 @@ public class BlockSpriteManager : MonoBehaviour
         SpriteRenderer spriteRenderer = block.GetComponent<SpriteRenderer>();
         if (spriteRenderer == null)
         {
-            spriteRenderer = block.gameObject.AddComponent<SpriteRenderer>();
+            try
+            {
+                spriteRenderer = block.gameObject.AddComponent<SpriteRenderer>();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to add SpriteRenderer to block at ({x},{y}): {e.Message}");
+                return;
+            }
+        }
+        
+        if (spriteRenderer == null)
+        {
+            Debug.LogError($"SpriteRenderer is still null after AddComponent at ({x},{y})");
+            return;
         }
         
         // Assign sprite
-        spriteRenderer.sprite = GetSpriteForEdges(spriteSet, hasTop, hasBottom, hasLeft, hasRight);
-        spriteRenderer.sortingOrder = 1;
+        Sprite selectedSprite = GetSpriteForEdges(spriteSet, hasTop, hasBottom, hasLeft, hasRight);
+        if (selectedSprite != null)
+        {
+            spriteRenderer.sprite = selectedSprite;
+            spriteRenderer.sortingOrder = 1;
+        }
+        else
+        {
+            Debug.LogWarning($"GetSpriteForEdges returned null for block at ({x},{y})");
+        }
     }
     
     // Update sprites for a falling tetromino (before it's in grid)
@@ -94,8 +127,10 @@ public class BlockSpriteManager : MonoBehaviour
         // Second pass: calculate relative positions
         foreach (Transform child in blockList)
         {
-            int x = Mathf.RoundToInt(child.position.x);
-            int y = Mathf.RoundToInt(child.position.y);
+            // Use localPosition so preview/hold pieces (which may be parented/scaled) map correctly
+            Vector3 localPos = child.localPosition;
+            int x = Mathf.RoundToInt(localPos.x);
+            int y = Mathf.RoundToInt(localPos.y);
             Vector2Int pos = new Vector2Int(x, y);
             
             if (!positionMap.ContainsKey(pos))
