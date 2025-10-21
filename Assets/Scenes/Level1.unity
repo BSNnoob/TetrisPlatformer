@@ -236,22 +236,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   normalSprites:
-    centerSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
-    topSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
-    bottomSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
-    leftSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
-    rightSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
-    topLeftSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    centerSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    topSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    bottomSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    leftSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    rightSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    topLeftSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
     topRightSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
     bottomLeftSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
     bottomRightSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
     topBottomSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
-    leftRightSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    leftRightSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
     topLeftRightSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
     bottomLeftRightSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
-    topBottomLeftSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
-    topBottomRightSprite: {fileID: -1013882979, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
-    singleBlockSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    topBottomLeftSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    topBottomRightSprite: {fileID: -1441962073, guid: 3944e109c3e7bd3419d58e2c30333302, type: 3}
+    singleBlockSprite: {fileID: 0}
   stickySprites:
     centerSprite: {fileID: -550919245, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
     topSprite: {fileID: -786119222, guid: 7e1479bf584c7cb4b9c4fd72b0b2d473, type: 3}
@@ -287,21 +287,21 @@ MonoBehaviour:
     topBottomRightSprite: {fileID: 873191943, guid: 708098859ddd9e647baf7ed22a2427a0, type: 3}
     singleBlockSprite: {fileID: 0}
   highJumpSprites:
-    centerSprite: {fileID: -1259288389, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    topSprite: {fileID: -1000203146, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    bottomSprite: {fileID: -1594029485, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    leftSprite: {fileID: -46851373, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    rightSprite: {fileID: 1022888402, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    topLeftSprite: {fileID: -130978584, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    topRightSprite: {fileID: -382240626, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    bottomLeftSprite: {fileID: -382240626, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    bottomRightSprite: {fileID: -1875407080, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    topBottomSprite: {fileID: -130978584, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    leftRightSprite: {fileID: -382240626, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    topLeftRightSprite: {fileID: -382240626, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    bottomLeftRightSprite: {fileID: 728498736, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    topBottomLeftSprite: {fileID: 1942332368, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
-    topBottomRightSprite: {fileID: -94362768, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
+    centerSprite: {fileID: -647739450, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    topSprite: {fileID: 1338538048, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    bottomSprite: {fileID: -1883569573, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    leftSprite: {fileID: 365141931, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    rightSprite: {fileID: 777399620, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    topLeftSprite: {fileID: -746345947, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    topRightSprite: {fileID: -1758124600, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    bottomLeftSprite: {fileID: -1027949544, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    bottomRightSprite: {fileID: -1505608147, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    topBottomSprite: {fileID: -777700856, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    leftRightSprite: {fileID: -1452931306, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    topLeftRightSprite: {fileID: -1328571591, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    bottomLeftRightSprite: {fileID: 1559063827, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    topBottomLeftSprite: {fileID: 402828675, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
+    topBottomRightSprite: {fileID: -1916880199, guid: 34b62a5fde05b8e4fbe8ef49550c52a0, type: 3}
     singleBlockSprite: {fileID: 0}
   bouncySprites:
     centerSprite: {fileID: 1563882704, guid: 9166c76794c548b4bbeb6549e1109411, type: 3}
@@ -372,7 +372,7 @@ MonoBehaviour:
   - {fileID: 2030387792}
   holdPosition: {fileID: 1329633456}
   blockSpriteManager: {fileID: 102117096}
-  protectionBlockSprite: {fileID: 21300000, guid: d9d0bc3a79aff0d42b244d4e31168689, type: 3}
+  protectionBlockSprite: {fileID: -1259288389, guid: cfde79903305c8d45a0361f564fa9a02, type: 3}
   blocks: 0
   Tetrominoes:
   - {fileID: 2653317360629957413, guid: 9e26472d87f5d7e4bba34e34f5411c5c, type: 3}

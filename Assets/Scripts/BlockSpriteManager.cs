@@ -48,12 +48,6 @@ public class BlockSpriteManager : MonoBehaviour
         
         Transform block = grid[x, y];
         if (block == null || block.gameObject == null) return;
-
-        // If this is a player protection block, don't override its sprite
-        if (block.gameObject.GetComponent<PlayerProtectionBlock>() != null)
-        {
-            return;
-        }
         
         // Get the block type from the layer
         BlockType blockType = GetBlockTypeFromLayer(block.gameObject.layer);
@@ -127,10 +121,8 @@ public class BlockSpriteManager : MonoBehaviour
         // Second pass: calculate relative positions
         foreach (Transform child in blockList)
         {
-            // Use localPosition so preview/hold pieces (which may be parented/scaled) map correctly
-            Vector3 localPos = child.localPosition;
-            int x = Mathf.RoundToInt(localPos.x);
-            int y = Mathf.RoundToInt(localPos.y);
+            int x = Mathf.RoundToInt(child.position.x);
+            int y = Mathf.RoundToInt(child.position.y);
             Vector2Int pos = new Vector2Int(x, y);
             
             if (!positionMap.ContainsKey(pos))

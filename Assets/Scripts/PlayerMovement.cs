@@ -17,13 +17,6 @@ public class PlayerMovement : MonoBehaviour
     public float wallSlidingSpeed = 2f;
     private bool isWallSliding;
 
-    private bool isWallJumping;
-    private float wallJumpingDirection;
-    private float wallJumpingTime = 0.2f;
-    private float wallJumpingCounter;
-    private float wallJumpingDuration= 0.4f;
-    private Vector2 wallJumpingPower = new Vector2(3f, 3f);
-
     [SerializeField] public Rigidbody2D rb;
     [SerializeField] public Transform groundCheck;
     [SerializeField] public LayerMask groundLayer;
@@ -52,9 +45,7 @@ public class PlayerMovement : MonoBehaviour
     {
         Move = Input.GetAxisRaw("Horizontal");
 
-        if (!isWallJumping && !stickyJumping) Flip();
-        WallSlide();
-        WallJump();
+        if (!stickyJumping) Flip();
 
         Vector3 worldDirection = transform.right * Move;
         Vector3 forward = transform.TransformDirection(new Vector2(rayDir, -1));
@@ -62,7 +53,7 @@ public class PlayerMovement : MonoBehaviour
         Vector3 wallOffset = transform.up * 0.25f;
         Vector3 littleOffset = transform.up * 0.1f;
 
-        if (!stickyJumping && !isWallJumping)
+        if (!stickyJumping)
         {
             if (isStickyWalking)
                 rb.velocity = new Vector2(speed * worldDirection.x, speed * worldDirection.y);
@@ -199,7 +190,7 @@ public class PlayerMovement : MonoBehaviour
 
     bool isGrounded()
     {
-        return Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
+        return Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
     }
 
     bool isGroundedHighJump()
@@ -215,55 +206,6 @@ public class PlayerMovement : MonoBehaviour
     bool isWalledSticky()
     {
         return Physics2D.OverlapCircle(wallCheck.position, 0.05f, stickyLayer);
-    }
-
-    void WallSlide()
-    {
-        if (isWalled() && Move != 0 && !isGrounded())
-        {
-            isWallSliding = true;
-            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlidingSpeed, float.MaxValue));
-        }
-        else
-        {
-            isWallSliding = false;
-        }
-    }
-
-    void WallJump()
-    {
-        if (isWallSliding)
-        {
-            isWallJumping = false;
-            wallJumpingDirection = -transform.localScale.x;
-            wallJumpingCounter = wallJumpingTime;
-            CancelInvoke(nameof(StopWallJumping));
-        }
-        else
-        {
-            wallJumpingCounter -= Time.deltaTime;
-        }
-
-        if (Input.GetButtonDown("Jump") && wallJumpingCounter > 0f)
-        {
-            isWallJumping = true;
-            rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
-            wallJumpingCounter = 0f;
-
-            if (transform.localScale.x != wallJumpingDirection)
-            {
-                isFacingRight = !isFacingRight;
-                Vector3 localScale = transform.localScale;
-                localScale.x *= -1;
-                transform.localScale = localScale;
-            }
-            Invoke(nameof(StopWallJumping), wallJumpingDuration);
-        }
-    }
-
-    void StopWallJumping()
-    {
-        isWallJumping = false;
     }
 
     void StopStickyJumping()
