@@ -105,8 +105,6 @@ public class SpawnManager : MonoBehaviour
 
         canHold = true;
 
-    Debug.Log($"SpawnManager.Spawn: spawned pieceIndex={nextPiece.pieceIndex} blockType={nextPiece.blockType}");
-
         UpdatePreview();
     }
 
@@ -208,14 +206,60 @@ public class SpawnManager : MonoBehaviour
                     script.enabled = false;
                 }
 
+                // First set the layers and create the TetrominoData component
+                TetrominoData previewData = preview.AddComponent<TetrominoData>();
+                previewData.pieceData = pieceData;
+
                 foreach (Transform children in preview.transform)
                 {
-                    ApplyColor(children.gameObject, pieceData.blockType);
+                    // Set the layer based on block type
+                    switch (pieceData.blockType)
+                    {
+                        case BlockType.Normal:
+                            children.gameObject.layer = 7;
+                            break;
+                        case BlockType.Sticky:
+                            children.gameObject.layer = 8;
+                            break;
+                        case BlockType.Pass:
+                            children.gameObject.layer = 9;
+                            break;
+                        case BlockType.HighJump:
+                            children.gameObject.layer = 10;
+                            break;
+                        case BlockType.Bouncy:
+                            children.gameObject.layer = 11;
+                            break;
+                    }
+                    
+                    // Make sure there's a SpriteRenderer and it preserves the sprite's colors
+                    SpriteRenderer spriteRenderer = children.GetComponent<SpriteRenderer>();
+                    if (spriteRenderer == null)
+                    {
+                        spriteRenderer = children.gameObject.AddComponent<SpriteRenderer>();
+                    }
+                    
+                    // For preview blocks, we want to use the sprite's original colors
+                    spriteRenderer.color = Color.white; // This ensures the sprite shows its original colors
+                    
+                    // Remove any existing material that might override the sprite
+                    Renderer renderer = children.GetComponent<Renderer>();
+                    if (renderer != null && renderer.material != null)
+                    {
+                        renderer.material.color = Color.white;
+                    }
                 }
+
+                Debug.Log($"Preview piece: type={pieceData.blockType}, index={pieceData.pieceIndex}");
                 
+                // Now update the sprites
                 if (blockSpriteManager != null)
                 {
-                    blockSpriteManager.UpdateFallingTetromino(preview, pieceData.blockType);
+                    blockSpriteManager.UpdatePreviewSprites(preview, pieceData.blockType);
+                }
+                else
+                {
+                    Debug.LogError("BlockSpriteManager is null when updating preview!");
                 }
 
                 previewObjects.Add(preview);
@@ -251,9 +295,11 @@ public class SpawnManager : MonoBehaviour
 
     public void Switch()
     {
-        if (checkPoint == 6) checkPoint = 12;
-        else if (checkPoint == 12) checkPoint = 18;
-        else if (checkPoint == 18) checkPoint = 24;
+        if (checkPoint == 4) checkPoint = 8;
+        else if (checkPoint == 8) checkPoint = 12;
+        else if (checkPoint == 12) checkPoint = 16;
+        else if (checkPoint == 16) checkPoint = 20;
+        else if (checkPoint == 20) checkPoint = 24;
 
         TimerManager.remainingTime = 15f;
         DisablePlayerProtectionBlocks();
@@ -261,7 +307,6 @@ public class SpawnManager : MonoBehaviour
         player.SetActive(true);
         timer.SetActive(true);
 
-        // Enable camera follow/zoom for platformer mode if a CameraController exists
         CameraController camCtrlEnable = FindObjectOfType<CameraController>();
         if (camCtrlEnable != null && player != null)
         {
@@ -273,7 +318,6 @@ public class SpawnManager : MonoBehaviour
     {
         int disabledCount = 0;
 
-        // Find all marker components (includes inactive objects)
         PlayerProtectionBlock[] comps = Resources.FindObjectsOfTypeAll<PlayerProtectionBlock>();
         foreach (var comp in comps)
         {
@@ -297,7 +341,6 @@ public class SpawnManager : MonoBehaviour
             disabledCount++;
         }
 
-        // Fallback: disable any GameObjects named "PlayerProtectionBlock"
         GameObject[] all = Resources.FindObjectsOfTypeAll<GameObject>();
         foreach (var go in all)
         {
@@ -320,39 +363,36 @@ public class SpawnManager : MonoBehaviour
             go.SetActive(false);
             disabledCount++;
         }
-
-        Debug.Log($"DisablePlayerProtectionBlocks: disabled {disabledCount} objects");
     }
 
     public void SwitchToTetris()
     {
-        player.SetActive(false);
-        timer.SetActive(false);
-        DestroyPlayerProtectionBlocks();
-
-        PlaceBlocksAroundPlayer();
-
-        Spawn();
-
-        // Disable camera follow/zoom and return to Tetris view size
-        CameraController camCtrlDisable = FindObjectOfType<CameraController>();
-        if (camCtrlDisable != null)
+        if (checkPoint != 24)
         {
-            camCtrlDisable.DisablePlatformerMode();
+            player.SetActive(false);
+            timer.SetActive(false);
+            DestroyPlayerProtectionBlocks();
+
+            PlaceBlocksAroundPlayer();
+
+            Spawn();
+
+            CameraController camCtrlDisable = FindObjectOfType<CameraController>();
+            if (camCtrlDisable != null)
+            {
+                camCtrlDisable.DisablePlatformerMode();
+            }
         }
     }
     
     void PlaceBlocksAroundPlayer()
     {
-        // Get player position
         Vector3 playerPos = player.transform.position;
         int playerX = Mathf.RoundToInt(playerPos.x);
         int playerY = Mathf.RoundToInt(playerPos.y);
         
         Debug.Log($"Player position: ({playerX}, {playerY})");
         
-        // Place 2x2 blocks around the player (forming a protective border)
-        // Top-left, top-right, bottom-left, bottom-right
         List<Vector2Int> blockPositions = new List<Vector2Int>
         {
             new Vector2Int(playerX - 1, playerY + 1),  // Top-left
@@ -366,20 +406,16 @@ public class SpawnManager : MonoBehaviour
         {
             Debug.Log($"Trying to place block at ({pos.x}, {pos.y})");
             
-            // Check if position is valid and empty
             if (pos.x >= 0 && pos.x < TetrisMovement.width && 
                 pos.y >= 0 && pos.y < TetrisMovement.height)
             {
                 if (TetrisMovement.grid[pos.x, pos.y] == null)
                 {
-                    // Create a block at this position as a simple GameObject with SpriteRenderer
                     GameObject block = new GameObject("PlayerProtectionBlock");
                     block.transform.position = new Vector3(pos.x, pos.y, 0);
 
-                    // Apply normal block properties
-                    block.layer = 7; // Normal layer
+                    block.layer = 7;
 
-                    // Use SpriteRenderer directly (BlockSpriteManager will assign the correct sprite)
                     SpriteRenderer spriteRenderer = block.AddComponent<SpriteRenderer>();
                     spriteRenderer.sortingOrder = 1;
                     if (protectionBlockSprite != null)
@@ -391,24 +427,19 @@ public class SpawnManager : MonoBehaviour
                         spriteRenderer.color = Color.gray;
                     }
                     
-                    // Add a 2D BoxCollider so physics/overlap checks behave like other blocks (optional)
                     BoxCollider2D box = block.AddComponent<BoxCollider2D>();
                     if (box != null)
                     {
                         box.isTrigger = false;
                     }
                     
-                    // Add to grid
-                    // Add marker component so we can find and remove these blocks reliably
                     block.AddComponent<PlayerProtectionBlock>();
 
-                    // Add to grid
                     TetrisMovement.grid[pos.x, pos.y] = block.transform;
                     blocksPlaced++;
                     
                     Debug.Log($"Block placed at ({pos.x}, {pos.y})");
                     
-                    // Update sprite based on neighbors
                     if (blockSpriteManager != null)
                     {
                         blockSpriteManager.UpdateBlockSprite(pos.x, pos.y, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);

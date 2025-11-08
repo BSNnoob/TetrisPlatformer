@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
 
 public class PlayerMovement : MonoBehaviour
@@ -40,9 +41,18 @@ public class PlayerMovement : MonoBehaviour
     public bool stickyJumping = false;
     public bool grounded;
     [SerializeField] public Animator animator;
+    public static int keyCount = 0;
+    public Text keyText;
+    public GameObject WinPanel;
+
+    void Start()
+    {
+        keyCount = 0;
+    }
 
     void Update()
     {
+        keyText.text = "Keys Collected: " + keyCount.ToString();
         Move = Input.GetAxisRaw("Horizontal");
 
         if (!stickyJumping) Flip();
@@ -222,6 +232,22 @@ public class PlayerMovement : MonoBehaviour
             Vector3 localScale = transform.localScale;
             localScale.x *= -1;
             transform.localScale = localScale;
+        }
+    }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Key"))
+        {
+            keyCount += 1;
+            Destroy(collision.gameObject);
+        }
+
+        if (collision.gameObject.CompareTag("FinishLine"))
+        {
+            if (keyCount < 3) return;
+            WinPanel.gameObject.SetActive(true);
+            Time.timeScale = 0f;
         }
     }
 }
