@@ -112,7 +112,7 @@ public class SpawnManager : MonoBehaviour
         // Don't spawn if game is over
         if (gameOver)
         {
-            Switch();
+            return;
         }
         
         Debug.Log("SpawnManager.Spawn: called. currentTetromino=" + (currentTetromino != null));
