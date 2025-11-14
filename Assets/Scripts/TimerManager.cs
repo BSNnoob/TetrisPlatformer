@@ -6,21 +6,23 @@ using UnityEngine.UI;
 public class TimerManager : MonoBehaviour
 {
     [SerializeField] Text timerText;
-    [SerializeField] public static float remainingTime;
+    public static float remainingTime; // Remove [SerializeField] from static fields
 
     void Update()
     {
-        if (SpawnManager.checkPoint != 24)
+        SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
+        
+        if (spawnManager != null)
         {
             remainingTime -= Time.deltaTime;
-        }
+            
             int seconds = Mathf.FloorToInt(remainingTime);
-            timerText.text = string.Format("{00}", seconds);
+            timerText.text = string.Format("{0:00}", seconds);
 
-        if (remainingTime <= 0)
-        {
-            if (SpawnManager.checkPoint != 24)
-                FindObjectOfType<SpawnManager>().SwitchToTetris();
+            if (remainingTime <= 0)
+            {
+                spawnManager.SwitchToTetris();
+            }
         }
     }
 }

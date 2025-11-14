@@ -10,8 +10,9 @@ public class TetrisMovement : MonoBehaviour
     public float fallTime = 1f;
     public float fallTimer;
     public float changeTimer;
-    public static int height = 20;
-    public static int width = 20;
+    public static int height = 30; // Increased to support Y from -10 to 20
+    public static int width = 20; // Max width across all levels
+    public static int yOffset = 10; // Offset to handle negative Y coordinates
     public static Transform[,] grid;
     [SerializeField] SpawnManager spawnManager;
     [SerializeField] BlockSpriteManager blockSpriteManager;
@@ -24,8 +25,10 @@ public class TetrisMovement : MonoBehaviour
         spawnManager = FindObjectOfType<SpawnManager>();
         blockSpriteManager = FindObjectOfType<BlockSpriteManager>();
         
+        // Determine level from scene name
         string sceneName = SceneManager.GetActiveScene().name;
         
+        // If scene changed, reinitialize grid
         if (sceneName != lastSceneName)
         {
             grid = new Transform[width, height];
@@ -36,8 +39,9 @@ public class TetrisMovement : MonoBehaviour
         if (sceneName == "Level1") currentLevel = 1;
         else if (sceneName == "Level2") currentLevel = 2;
         else if (sceneName == "Level3") currentLevel = 3;
-        else currentLevel = 1;
+        else currentLevel = 1; // Default
         
+        // Initialize grid if not done yet
         if (grid == null)
         {
             grid = new Transform[width, height];
@@ -46,6 +50,7 @@ public class TetrisMovement : MonoBehaviour
 
     void Update()
     {
+        // Continuously update sprites while falling
         TetrominoData data = GetComponent<TetrominoData>();
         if (blockSpriteManager != null && data != null)
         {
@@ -61,11 +66,13 @@ public class TetrisMovement : MonoBehaviour
             }
             else
             {
+                // Snap blocks to grid positions and reset their rotation
                 foreach (Transform child in transform)
                 {
                     Vector3 pos = child.position;
                     child.position = new Vector3(Mathf.Round(pos.x), Mathf.Round(pos.y), Mathf.Round(pos.z));
                     
+                    // Reset rotation so sprites stay upright
                     child.rotation = Quaternion.identity;
                 }
             }
@@ -108,122 +115,66 @@ public class TetrisMovement : MonoBehaviour
 
     void AddToGrid()
     {
+        // First, add all blocks to grid
         foreach (Transform children in transform)
         {
             int roundX = Mathf.RoundToInt(children.transform.position.x);
             int roundY = Mathf.RoundToInt(children.transform.position.y);
+            int gridY = roundY + yOffset; // Convert world Y to grid index
             
-            if (roundX >= 0 && roundX < width && roundY >= 0 && roundY < height)
+            // Safety check before adding to grid
+            if (roundX >= 0 && roundX < width && gridY >= 0 && gridY < height)
             {
-                grid[roundX, roundY] = children;
+                grid[roundX, gridY] = children;
                 spawnManager.blocks++;
             }
             else
             {
-                Debug.LogWarning($"Block at ({roundX}, {roundY}) is out of bounds!");
+                Debug.LogWarning($"Block at world({roundX}, {roundY}) grid({roundX}, {gridY}) is out of bounds!");
             }
         }
         
+        // Then update sprites by checking grid
         if (blockSpriteManager != null)
         {
             foreach (Transform children in transform)
             {
                 int roundX = Mathf.RoundToInt(children.transform.position.x);
                 int roundY = Mathf.RoundToInt(children.transform.position.y);
+                int gridY = roundY + yOffset;
                 
-                if (roundX >= 0 && roundX < width && roundY >= 0 && roundY < height)
+                // Only update if within bounds
+                if (roundX >= 0 && roundX < width && gridY >= 0 && gridY < height)
                 {
-                    blockSpriteManager.UpdateBlockSprite(roundX, roundY, grid, width, height);
+                    // Update this block
+                    blockSpriteManager.UpdateBlockSprite(roundX, gridY, grid, width, height);
                     
-                    if (roundY + 1 < height) 
-                        blockSpriteManager.UpdateBlockSprite(roundX, roundY + 1, grid, width, height);
-                    if (roundY - 1 >= 0) 
-                        blockSpriteManager.UpdateBlockSprite(roundX, roundY - 1, grid, width, height);
+                    // Update neighbors (with bounds checking)
+                    if (gridY + 1 < height) 
+                        blockSpriteManager.UpdateBlockSprite(roundX, gridY + 1, grid, width, height);
+                    if (gridY - 1 >= 0) 
+                        blockSpriteManager.UpdateBlockSprite(roundX, gridY - 1, grid, width, height);
                     if (roundX - 1 >= 0) 
-                        blockSpriteManager.UpdateBlockSprite(roundX - 1, roundY, grid, width, height);
+                        blockSpriteManager.UpdateBlockSprite(roundX - 1, gridY, grid, width, height);
                     if (roundX + 1 < width) 
-                        blockSpriteManager.UpdateBlockSprite(roundX + 1, roundY, grid, width, height);
+                        blockSpriteManager.UpdateBlockSprite(roundX + 1, gridY, grid, width, height);
                 }
             }
         }
         
-        if (!CheckGameOver())
+        // Notify SpawnManager that a tetromino has landed
+        // OnTetrominoLanded returns true if it switched to platformer mode
+        SpawnManager sm = FindObjectOfType<SpawnManager>();
+        if (sm != null)
         {
-            SpawnManager sm = FindObjectOfType<SpawnManager>();
-            if (sm != null)
+            bool switchedToPlatformer = sm.OnTetrominoLanded();
+            
+            // Only spawn next piece if we didn't switch to platformer
+            if (!switchedToPlatformer)
             {
                 sm.Spawn();
             }
         }
-    }
-
-    bool CheckGameOver()
-    {
-        int checkpointY = SpawnManager.checkPoint;
-        
-        if (currentLevel == 1)
-        {
-            // Level 1: Standard 10-wide grid (x: 0-9)
-            for (int i = 0; i < 10; i++)
-            {
-                if (checkpointY < height && grid[i, checkpointY] != null)
-                {
-                    Debug.Log($"Checkpoint reached at Y={checkpointY}, switching to platformer");
-                    this.enabled = false;
-                    FindObjectOfType<SpawnManager>().Switch();
-                    return true;
-                }
-            }
-        }
-        else if (currentLevel == 2)
-        {
-            // Level 2: L-shape
-            // Check based on checkpoint Y position
-            if (checkpointY <= 10)
-            {
-                // Bottom section: 20 blocks wide (x: 0-19)
-                for (int i = 0; i < 20; i++)
-                {
-                    if (checkpointY < height && grid[i, checkpointY] != null)
-                    {
-                        Debug.Log($"Checkpoint reached at Y={checkpointY}, switching to platformer");
-                        this.enabled = false;
-                        FindObjectOfType<SpawnManager>().Switch();
-                        return true;
-                    }
-                }
-            }
-            else
-            {
-                // Top section: 10 blocks wide (x: 0-9)
-                for (int i = 0; i < 10; i++)
-                {
-                    if (checkpointY < height && grid[i, checkpointY] != null)
-                    {
-                        Debug.Log($"Checkpoint reached at Y={checkpointY}, switching to platformer");
-                        this.enabled = false;
-                        FindObjectOfType<SpawnManager>().Switch();
-                        return true;
-                    }
-                }
-            }
-        }
-        else if (currentLevel == 3)
-        {
-            // Level 3: TODO - define game over condition
-            for (int i = 0; i < 10; i++)
-            {
-                if (checkpointY < height && grid[i, checkpointY] != null)
-                {
-                    Debug.Log($"Checkpoint reached at Y={checkpointY}, switching to platformer");
-                    this.enabled = false;
-                    FindObjectOfType<SpawnManager>().Switch();
-                    return true;
-                }
-            }
-        }
-        
-        return false; // Game continues
     }
 
     bool ValidGrid()
@@ -232,13 +183,15 @@ public class TetrisMovement : MonoBehaviour
         {
             int roundX = Mathf.RoundToInt(children.transform.position.x);
             int roundY = Mathf.RoundToInt(children.transform.position.y);
+            int gridY = roundY + yOffset;
 
-            if (roundY < 0 || roundY >= height) return false;
+            if (gridY < 0 || gridY >= height) return false;
 
             // Check bounds based on current level
             if (currentLevel == 1)
             {
-                // Level 1: Standard 10-wide grid
+                // Level 1: Standard 10-wide grid (Y: 0-19, X: 0-9)
+                if (roundY < 0 || roundY >= 20) return false;
                 if (roundX < 0 || roundX >= 10) return false;
             }
             else if (currentLevel == 2)
@@ -246,6 +199,8 @@ public class TetrisMovement : MonoBehaviour
                 // Level 2: L-shape
                 // Y 0-10: width is 20 (x: 0-19)
                 // Y 11-20: width is 10 (x: 0-9)
+                if (roundY < 0 || roundY >= 20) return false;
+                
                 if (roundY <= 10)
                 {
                     if (roundX < 0 || roundX >= 20) return false;
@@ -257,11 +212,30 @@ public class TetrisMovement : MonoBehaviour
             }
             else if (currentLevel == 3)
             {
-                // Level 3: TODO - define structure
-                if (roundX < 0 || roundX >= 10) return false;
+                // Level 3: S-shape
+                // Top (Y 11-20): X 0-9
+                // Middle (Y 0-10): X 0-19
+                // Bottom (Y -10 to -1): X 11-19
+                if (roundY < -10 || roundY >= 20) return false;
+                
+                if (roundY >= 11)
+                {
+                    // Top section: narrow (x: 0-9)
+                    if (roundX < 0 || roundX >= 10) return false;
+                }
+                else if (roundY >= 0)
+                {
+                    // Middle section: full width (x: 0-19)
+                    if (roundX < 0 || roundX >= 20) return false;
+                }
+                else
+                {
+                    // Bottom section: offset narrow (x: 11-19)
+                    if (roundX < 11 || roundX >= 20) return false;
+                }
             }
 
-            if (grid[roundX, roundY] != null)
+            if (grid[roundX, gridY] != null)
             {
                 return false;
             }
@@ -275,9 +249,31 @@ public class TetrisMovement : MonoBehaviour
         {
             int roundX = Mathf.RoundToInt(children.transform.position.x);
             int roundY = Mathf.RoundToInt(children.transform.position.y);
+            int gridY = roundY + yOffset;
+            int gridYBelow = (roundY - 1) + yOffset;
 
-            if (roundY == 0 || (roundX >= 0 && roundX < width && roundY - 1 >= 0 && grid[roundX, roundY - 1] != null)) 
+            // Check bottom boundary based on level
+            bool atBottom = false;
+            if (currentLevel == 1)
+            {
+                atBottom = (roundY == 0);
+            }
+            else if (currentLevel == 2)
+            {
+                atBottom = (roundY == 0);
+            }
+            else if (currentLevel == 3)
+            {
+                atBottom = (roundY == -10);
+            }
+
+            if (atBottom) return false;
+            
+            // Check if block below exists
+            if (roundX >= 0 && roundX < width && gridYBelow >= 0 && gridYBelow < height && grid[roundX, gridYBelow] != null)
+            {
                 return false;
+            }
         }
         return true;
     }
