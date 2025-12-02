@@ -56,7 +56,7 @@ public class SpawnManager : MonoBehaviour
     public static bool gameOver = false;
     private static int currentLevel = 1;
 
-    private bool isTetrisMode = true;
+    public bool isTetrisMode = true;
 
     void Start()
     {
@@ -96,7 +96,9 @@ public class SpawnManager : MonoBehaviour
 
     void Update()
     {
+
         totalBlock.text = "Total Blocks: " + blocks.ToString();
+        Debug.Log("isTetrisMode" + isTetrisMode);
 
         if (player != null && !player.activeInHierarchy && !gameOver)
         {
@@ -455,7 +457,7 @@ public class SpawnManager : MonoBehaviour
 
     public void SwitchToTetris()
     {
-        if(isTetrisMode) return;
+        if(!isTetrisMode){
         if (gameOver)
         {
             Debug.Log("Game Over! Cannot switch back to Tetris mode.");
@@ -474,6 +476,8 @@ public class SpawnManager : MonoBehaviour
         if (camCtrlDisable != null)
         {
             camCtrlDisable.DisablePlatformerMode();
+        }
+        isTetrisMode = true;
         }
     }
     
