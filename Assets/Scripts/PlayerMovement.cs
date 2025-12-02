@@ -5,7 +5,6 @@ using System.Security.Cryptography.X509Certificates;
 using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEditor;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -13,6 +12,14 @@ using UnityEngine.UIElements;
 
 public class PlayerMovement : MonoBehaviour
 {
+    public AudioSource audioSource;
+    public AudioSource walkSource;
+    public AudioClip jumpSound;
+    public AudioClip stickySound;
+    public AudioClip highjumpSound;
+    public AudioClip runningSound;
+    public AudioClip bouncySound;
+    public AudioClip splashSound;
     public float speed = 5f;
     public float Move;
     public float wallSlidingSpeed = 2f;
@@ -54,6 +61,25 @@ public class PlayerMovement : MonoBehaviour
     {
         keyText.text = "Keys Collected: " + keyCount.ToString();
         Move = Input.GetAxisRaw("Horizontal");
+
+        if (Move != 0 && (isGrounded() || isStickyWalking))
+        {
+            if (isStickyWalking){
+                walkSource.clip = stickySound;
+                if (walkSource.isPlaying == false)
+                    walkSource.Play();
+            }
+            else
+            {
+                walkSource.clip = runningSound;
+                if (walkSource.isPlaying == false)
+                    walkSource.Play();
+            }
+        }
+        else
+        {
+            walkSource.Stop();
+        }
 
         if (!stickyJumping) Flip();
 
@@ -173,7 +199,16 @@ public class PlayerMovement : MonoBehaviour
             }
             else if (isGrounded())
             {
-                rb.velocity = new Vector2(rb.velocity.x, jump);
+                if (isGroundedHighJump())
+                {
+                    audioSource.clip = highjumpSound;
+                    audioSource.Play();
+                    rb.velocity = new Vector2(rb.velocity.x, jump);
+                }else{
+                    audioSource.clip = jumpSound;
+                    audioSource.Play();
+                    rb.velocity = new Vector2(rb.velocity.x, jump);
+                }
             }
 
             Invoke(nameof(StopStickyJumping), 0.4f);
@@ -248,6 +283,21 @@ public class PlayerMovement : MonoBehaviour
             if (keyCount < 3) return;
             WinPanel.gameObject.SetActive(true);
             Time.timeScale = 0f;
+        }
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.layer == 11)
+        {
+            audioSource.clip = bouncySound;
+            audioSource.Play();
+        }
+
+        if (collision.gameObject.layer == 9)
+        {
+            audioSource.clip = splashSound;
+            audioSource.Play();
         }
     }
 }

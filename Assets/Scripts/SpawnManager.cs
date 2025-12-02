@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -30,6 +29,8 @@ public class PieceData
 
 public class SpawnManager : MonoBehaviour
 {
+    [SerializeField] AudioSource audioSource;
+    [SerializeField] AudioClip dropSound;
     [SerializeField] public Text totalBlock;
     [SerializeField] public Button restartButton;
     [SerializeField] public Transform[] previewPositions;
@@ -49,21 +50,21 @@ public class SpawnManager : MonoBehaviour
     private GameObject currentTetromino = null;
     private bool canHold = true;
     
-    // NEW SYSTEM: Count spawned tetrominos instead of checkpoint
     public static int spawnedTetrominoCount = 0;
-    private const int TETROMINOS_PER_ROUND = 8; // Switch to platformer after 8 tetrominos
+    private const int TETROMINOS_PER_ROUND = 4;
     
-    // HEIGHT LIMIT SYSTEM
-    public static bool gameOver = false; // If true, no more spawning or switching
+    public static bool gameOver = false;
     private static int currentLevel = 1;
+
+    private bool isTetrisMode = true;
 
     void Start()
     {
+        isTetrisMode = true;
         blocks = 0;
         spawnedTetrominoCount = 0;
-        gameOver = false; // Reset game over state
+        gameOver = false;
         
-        // Determine current level from scene name
         string sceneName = SceneManager.GetActiveScene().name;
         if (sceneName == "Level1") currentLevel = 1;
         else if (sceneName == "Level2") currentLevel = 2;
@@ -88,7 +89,7 @@ public class SpawnManager : MonoBehaviour
 
     public void RestartScene()
     {
-        gameOver = false; // Reset when restarting
+        gameOver = false;
         string currentScene = SceneManager.GetActiveScene().name;
         SceneManager.LoadScene(currentScene);
     }
@@ -97,7 +98,6 @@ public class SpawnManager : MonoBehaviour
     {
         totalBlock.text = "Total Blocks: " + blocks.ToString();
 
-        // Only allow hold mechanic when player is not active (i.e., in Tetris mode) and game is not over
         if (player != null && !player.activeInHierarchy && !gameOver)
         {
             if (Input.GetKeyDown(KeyCode.DownArrow) && canHold && currentTetromino != null)
@@ -109,7 +109,6 @@ public class SpawnManager : MonoBehaviour
 
     public void Spawn()
     {
-        // Don't spawn if game is over
         if (gameOver)
         {
             return;
@@ -136,7 +135,8 @@ public class SpawnManager : MonoBehaviour
     
     public bool OnTetrominoLanded()
     {
-        // Check if any block was placed at height 18 or above
+        audioSource.clip = dropSound;
+        audioSource.Play();
         bool blockAtHeight18OrAbove = CheckForBlocksAtHeight18();
         
         if (blockAtHeight18OrAbove)
@@ -145,48 +145,42 @@ public class SpawnManager : MonoBehaviour
             gameOver = true;
             Switch();
             
-            // Disable timer if it's active
             if (timer != null && timer.activeInHierarchy)
             {
                 timer.SetActive(false);
             }
             
-            return true; // Don't spawn more pieces
+            return true;
         }
         
-        // This gets called from TetrisMovement when a piece lands
         spawnedTetrominoCount++;
         Debug.Log($"Tetromino landed! Total count: {spawnedTetrominoCount}");
         
-        // CHECK IF WE NEED TO SWITCH TO PLATFORMER MODE (only if not game over)
         if (spawnedTetrominoCount >= TETROMINOS_PER_ROUND && !gameOver)
         {
             Debug.Log($"Reached {TETROMINOS_PER_ROUND} tetrominos! Switching to platformer mode.");
-            spawnedTetrominoCount = 0; // Reset count for next round
+            spawnedTetrominoCount = 0;
             Switch();
-            return true; // Return true to indicate we switched modes
+            return true;
         }
         
-        return false; // Return false to indicate normal gameplay continues
+        return false;
     }
     
     bool CheckForBlocksAtHeight18()
     {
-        // Determine height limit based on level (world Y coordinates)
         int worldYLimit;
         if (currentLevel == 3)
         {
-            worldYLimit = 18; // Level 3: check from world Y=18
+            worldYLimit = 18;
         }
         else
         {
-            worldYLimit = 18; // Level 1 & 2: check from world Y=18
+            worldYLimit = 18;
         }
         
-        // Convert world Y limit to grid index
         int gridYLimit = worldYLimit + TetrisMovement.yOffset;
         
-        // Check the entire grid for blocks at the height limit or higher
         for (int x = 0; x < TetrisMovement.width; x++)
         {
             for (int gridY = gridYLimit; gridY < TetrisMovement.height; gridY++)
@@ -237,39 +231,43 @@ public class SpawnManager : MonoBehaviour
     }
 
     void UpdateHoldPreview()
+{
+    if (holdPreviewObject != null)
     {
-        if (holdPreviewObject != null)
+        Destroy(holdPreviewObject);
+        holdPreviewObject = null;
+    }
+
+    if (heldPiece != null && holdPosition != null)
+    {
+        holdPreviewObject = Instantiate(Tetrominoes[heldPiece.pieceIndex], holdPosition.position, Quaternion.identity);
+        holdPreviewObject.transform.SetParent(holdPosition);
+        holdPreviewObject.transform.localScale = Vector3.one * 0.5f;
+
+        Rigidbody2D rb = holdPreviewObject.GetComponent<Rigidbody2D>();
+        if (rb != null) rb.simulated = false;
+
+        MonoBehaviour[] scripts = holdPreviewObject.GetComponents<MonoBehaviour>();
+        foreach (var script in scripts)
         {
-            Destroy(holdPreviewObject);
-            holdPreviewObject = null;
+            script.enabled = false;
         }
 
-        if (heldPiece != null && holdPosition != null)
+        // Apply colors first
+        foreach (Transform children in holdPreviewObject.transform)
         {
-            holdPreviewObject = Instantiate(Tetrominoes[heldPiece.pieceIndex], holdPosition.position, Quaternion.identity);
-            holdPreviewObject.transform.SetParent(holdPosition);
-            holdPreviewObject.transform.localScale = Vector3.one * 0.5f;
-
-            Rigidbody2D rb = holdPreviewObject.GetComponent<Rigidbody2D>();
-            if (rb != null) rb.simulated = false;
-
-            MonoBehaviour[] scripts = holdPreviewObject.GetComponents<MonoBehaviour>();
-            foreach (var script in scripts)
-            {
-                script.enabled = false;
-            }
-
-            foreach (Transform children in holdPreviewObject.transform)
-            {
-                ApplyColor(children.gameObject, heldPiece.blockType);
-            }
-            
-            if (blockSpriteManager != null)
-            {
-                blockSpriteManager.UpdateFallingTetromino(holdPreviewObject, heldPiece.blockType);
-            }
+            ApplyColor(children.gameObject, heldPiece.blockType);
+        }
+        
+        // Update sprites using the block sprite manager
+        if (blockSpriteManager != null)
+        {
+            // UpdatePreviewSprites uses localPosition which handles parented/scaled objects correctly
+            blockSpriteManager.UpdatePreviewSprites(holdPreviewObject, heldPiece.blockType);
         }
     }
+}
+
 
     void UpdatePreview()
     {
@@ -383,8 +381,7 @@ public class SpawnManager : MonoBehaviour
 
     public void Switch()
     {
-        // Don't switch to platformer if game is over
-
+        isTetrisMode = false;
         if (gameOver)
         {
             timer.SetActive(false);
@@ -416,13 +413,14 @@ public class SpawnManager : MonoBehaviour
 
             Vector3 pos = go.transform.position;
             int x = Mathf.RoundToInt(pos.x);
-            int y = Mathf.RoundToInt(pos.y);
+            int worldY = Mathf.RoundToInt(pos.y);
+            int gridY = worldY + TetrisMovement.yOffset; // FIX: Convert world Y to grid Y
 
-            if (x >= 0 && x < TetrisMovement.width && y >= 0 && y < TetrisMovement.height)
+            if (x >= 0 && x < TetrisMovement.width && gridY >= 0 && gridY < TetrisMovement.height)
             {
-                if (TetrisMovement.grid[x, y] != null && TetrisMovement.grid[x, y].gameObject == go)
+                if (TetrisMovement.grid[x, gridY] != null && TetrisMovement.grid[x, gridY].gameObject == go)
                 {
-                    TetrisMovement.grid[x, y] = null;
+                    TetrisMovement.grid[x, gridY] = null;
                 }
             }
 
@@ -439,13 +437,14 @@ public class SpawnManager : MonoBehaviour
 
             Vector3 pos = go.transform.position;
             int x = Mathf.RoundToInt(pos.x);
-            int y = Mathf.RoundToInt(pos.y);
+            int worldY = Mathf.RoundToInt(pos.y);
+            int gridY = worldY + TetrisMovement.yOffset;
 
-            if (x >= 0 && x < TetrisMovement.width && y >= 0 && y < TetrisMovement.height)
+            if (x >= 0 && x < TetrisMovement.width && gridY >= 0 && gridY < TetrisMovement.height)
             {
-                if (TetrisMovement.grid[x, y] != null && TetrisMovement.grid[x, y].gameObject == go)
+                if (TetrisMovement.grid[x, gridY] != null && TetrisMovement.grid[x, gridY].gameObject == go)
                 {
-                    TetrisMovement.grid[x, y] = null;
+                    TetrisMovement.grid[x, gridY] = null;
                 }
             }
 
@@ -456,7 +455,7 @@ public class SpawnManager : MonoBehaviour
 
     public void SwitchToTetris()
     {
-        // Don't switch back to Tetris if game is over
+        if(isTetrisMode) return;
         if (gameOver)
         {
             Debug.Log("Game Over! Cannot switch back to Tetris mode.");
@@ -482,30 +481,33 @@ public class SpawnManager : MonoBehaviour
     {
         Vector3 playerPos = player.transform.position;
         int playerX = Mathf.RoundToInt(playerPos.x);
-        int playerY = Mathf.RoundToInt(playerPos.y);
+        int playerWorldY = Mathf.RoundToInt(playerPos.y);
         
-        Debug.Log($"Player position: ({playerX}, {playerY})");
+        Debug.Log($"Player position: ({playerX}, {playerWorldY}) in WORLD coordinates");
         
-        List<Vector2Int> blockPositions = new List<Vector2Int>
+        List<Vector2Int> blockWorldPositions = new List<Vector2Int>
         {
-            new Vector2Int(playerX - 1, playerY + 1),
-            new Vector2Int(playerX, playerY + 1),
-            new Vector2Int(playerX - 1, playerY),
-            new Vector2Int(playerX, playerY)
+            new Vector2Int(playerX - 1, playerWorldY + 1),
+            new Vector2Int(playerX, playerWorldY + 1),
+            new Vector2Int(playerX - 1, playerWorldY),
+            new Vector2Int(playerX, playerWorldY)
         };
         
         int blocksPlaced = 0;
-        foreach (Vector2Int pos in blockPositions)
+        foreach (Vector2Int worldPos in blockWorldPositions)
         {
-            Debug.Log($"Trying to place block at ({pos.x}, {pos.y})");
+            int gridX = worldPos.x;
+            int gridY = worldPos.y + TetrisMovement.yOffset; // FIX: Convert world Y to grid Y
             
-            if (pos.x >= 0 && pos.x < TetrisMovement.width && 
-                pos.y >= 0 && pos.y < TetrisMovement.height)
+            Debug.Log($"Trying to place block at WORLD({worldPos.x}, {worldPos.y}) -> GRID[{gridX}, {gridY}]");
+            
+            if (gridX >= 0 && gridX < TetrisMovement.width && 
+                gridY >= 0 && gridY < TetrisMovement.height)
             {
-                if (TetrisMovement.grid[pos.x, pos.y] == null)
+                if (TetrisMovement.grid[gridX, gridY] == null)
                 {
                     GameObject block = new GameObject("PlayerProtectionBlock");
-                    block.transform.position = new Vector3(pos.x, pos.y, 0);
+                    block.transform.position = new Vector3(worldPos.x, worldPos.y, 0);
 
                     block.layer = 7;
 
@@ -528,24 +530,24 @@ public class SpawnManager : MonoBehaviour
                     
                     block.AddComponent<PlayerProtectionBlock>();
 
-                    TetrisMovement.grid[pos.x, pos.y] = block.transform;
+                    TetrisMovement.grid[gridX, gridY] = block.transform;
                     blocksPlaced++;
                     
-                    Debug.Log($"Block placed at ({pos.x}, {pos.y})");
+                    Debug.Log($"Block placed at WORLD({worldPos.x}, {worldPos.y}) GRID[{gridX}, {gridY}]");
                     
                     if (blockSpriteManager != null)
                     {
-                        blockSpriteManager.UpdateBlockSprite(pos.x, pos.y, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
+                        blockSpriteManager.UpdateBlockSprite(gridX, gridY, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
                     }
                 }
                 else
                 {
-                    Debug.Log($"Position ({pos.x}, {pos.y}) already occupied");
+                    Debug.Log($"Position GRID[{gridX}, {gridY}] already occupied");
                 }
             }
             else
             {
-                Debug.Log($"Position ({pos.x}, {pos.y}) out of bounds");
+                Debug.Log($"Position GRID[{gridX}, {gridY}] out of bounds");
             }
         }
         
@@ -553,18 +555,21 @@ public class SpawnManager : MonoBehaviour
         
         if (blockSpriteManager != null)
         {
-            foreach (Vector2Int pos in blockPositions)
+            foreach (Vector2Int worldPos in blockWorldPositions)
             {
-                if (pos.x >= 0 && pos.x < TetrisMovement.width && pos.y >= 0 && pos.y < TetrisMovement.height)
+                int gridX = worldPos.x;
+                int gridY = worldPos.y + TetrisMovement.yOffset;
+                
+                if (gridX >= 0 && gridX < TetrisMovement.width && gridY >= 0 && gridY < TetrisMovement.height)
                 {
-                    if (pos.y + 1 < TetrisMovement.height) 
-                        blockSpriteManager.UpdateBlockSprite(pos.x, pos.y + 1, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
-                    if (pos.y - 1 >= 0) 
-                        blockSpriteManager.UpdateBlockSprite(pos.x, pos.y - 1, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
-                    if (pos.x - 1 >= 0) 
-                        blockSpriteManager.UpdateBlockSprite(pos.x - 1, pos.y, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
-                    if (pos.x + 1 < TetrisMovement.width) 
-                        blockSpriteManager.UpdateBlockSprite(pos.x + 1, pos.y, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
+                    if (gridY + 1 < TetrisMovement.height) 
+                        blockSpriteManager.UpdateBlockSprite(gridX, gridY + 1, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
+                    if (gridY - 1 >= 0) 
+                        blockSpriteManager.UpdateBlockSprite(gridX, gridY - 1, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
+                    if (gridX - 1 >= 0) 
+                        blockSpriteManager.UpdateBlockSprite(gridX - 1, gridY, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
+                    if (gridX + 1 < TetrisMovement.width) 
+                        blockSpriteManager.UpdateBlockSprite(gridX + 1, gridY, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
                 }
             }
         }
@@ -587,14 +592,15 @@ public class SpawnManager : MonoBehaviour
 
             Vector3 pos = block.transform.position;
             int x = Mathf.RoundToInt(pos.x);
-            int y = Mathf.RoundToInt(pos.y);
+            int worldY = Mathf.RoundToInt(pos.y);
+            int gridY = worldY + TetrisMovement.yOffset;
 
-            if (x >= 0 && x < TetrisMovement.width && y >= 0 && y < TetrisMovement.height)
+            if (x >= 0 && x < TetrisMovement.width && gridY >= 0 && gridY < TetrisMovement.height)
             {
-                if (TetrisMovement.grid[x, y] != null && TetrisMovement.grid[x, y].gameObject == block)
+                if (TetrisMovement.grid[x, gridY] != null && TetrisMovement.grid[x, gridY].gameObject == block)
                 {
-                    TetrisMovement.grid[x, y] = null;
-                    Debug.Log($"DestroyPlayerProtectionBlocks: cleared grid[{x},{y}]");
+                    TetrisMovement.grid[x, gridY] = null;
+                    Debug.Log($"DestroyPlayerProtectionBlocks: cleared grid[{x},{gridY}]");
                 }
             }
 
@@ -613,13 +619,14 @@ public class SpawnManager : MonoBehaviour
 
             Vector3 pos = go.transform.position;
             int x = Mathf.RoundToInt(pos.x);
-            int y = Mathf.RoundToInt(pos.y);
+            int worldY = Mathf.RoundToInt(pos.y);
+            int gridY = worldY + TetrisMovement.yOffset;
 
-            if (x >= 0 && x < TetrisMovement.width && y >= 0 && y < TetrisMovement.height)
+            if (x >= 0 && x < TetrisMovement.width && gridY >= 0 && gridY < TetrisMovement.height)
             {
-                if (TetrisMovement.grid[x, y] != null && TetrisMovement.grid[x, y].gameObject == go)
+                if (TetrisMovement.grid[x, gridY] != null && TetrisMovement.grid[x, gridY].gameObject == go)
                 {
-                    TetrisMovement.grid[x, y] = null;
+                    TetrisMovement.grid[x, gridY] = null;
                 }
             }
 
@@ -631,17 +638,18 @@ public class SpawnManager : MonoBehaviour
         {
             Vector3 playerPos = player.transform.position;
             int px = Mathf.RoundToInt(playerPos.x);
-            int py = Mathf.RoundToInt(playerPos.y);
+            int pworldY = Mathf.RoundToInt(playerPos.y);
+            int pGridY = pworldY + TetrisMovement.yOffset;
 
             for (int dx = -2; dx <= 2; dx++)
             {
                 for (int dy = -2; dy <= 2; dy++)
                 {
                     int nx = px + dx;
-                    int ny = py + dy;
-                    if (nx >= 0 && nx < TetrisMovement.width && ny >= 0 && ny < TetrisMovement.height)
+                    int nGridY = pGridY + dy;
+                    if (nx >= 0 && nx < TetrisMovement.width && nGridY >= 0 && nGridY < TetrisMovement.height)
                     {
-                        blockSpriteManager.UpdateBlockSprite(nx, ny, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
+                        blockSpriteManager.UpdateBlockSprite(nx, nGridY, TetrisMovement.grid, TetrisMovement.width, TetrisMovement.height);
                     }
                 }
             }

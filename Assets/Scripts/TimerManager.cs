@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class TimerManager : MonoBehaviour
 {
     [SerializeField] Text timerText;
-    public static float remainingTime; // Remove [SerializeField] from static fields
+    public static float remainingTime;
 
     void Update()
     {
