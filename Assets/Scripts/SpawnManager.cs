@@ -58,6 +58,7 @@ public class SpawnManager : MonoBehaviour
 
     public bool isTetrisMode = true;
     public bool goingPlatformer = false;
+    public Text tetrominoLeft;
 
     void Start()
     {
@@ -97,6 +98,7 @@ public class SpawnManager : MonoBehaviour
 
     void Update()
     {
+        tetrominoLeft.text = "Tetromino Left: " + (TETROMINOS_PER_ROUND - spawnedTetrominoCount).ToString();
 
         totalBlock.text = "Total Blocks: " + blocks.ToString();
         Debug.Log("isTetrisMode" + isTetrisMode);
