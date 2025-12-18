@@ -154,9 +154,12 @@ public class TetrisMovement : MonoBehaviour
         {
             bool switchedToPlatformer = sm.OnTetrominoLanded();
             
-            if (!switchedToPlatformer)
+            if (!switchedToPlatformer && !sm.goingPlatformer)
             {
                 sm.Spawn();
+            }else if (sm.goingPlatformer)
+            {
+                sm.Switch();
             }
         }
     }

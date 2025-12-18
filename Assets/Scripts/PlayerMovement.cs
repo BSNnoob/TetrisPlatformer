@@ -59,7 +59,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        keyText.text = "Keys Collected: " + keyCount.ToString();
+        keyText.text = "x " + keyCount.ToString();
         Move = Input.GetAxisRaw("Horizontal");
 
         if (Move != 0 && (isGrounded() || isStickyWalking))

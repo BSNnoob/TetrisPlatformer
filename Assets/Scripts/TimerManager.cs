@@ -7,9 +7,11 @@ public class TimerManager : MonoBehaviour
 {
     [SerializeField] Text timerText;
     public static float remainingTime;
+    [SerializeField] public Slider slider;
 
     void Update()
     {
+        slider.value = remainingTime / 20;
         SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
         
         if (spawnManager != null)

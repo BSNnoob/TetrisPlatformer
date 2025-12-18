@@ -51,12 +51,13 @@ public class SpawnManager : MonoBehaviour
     private bool canHold = true;
     
     public static int spawnedTetrominoCount = 0;
-    private const int TETROMINOS_PER_ROUND = 4;
+    private const int TETROMINOS_PER_ROUND = 8;
     
     public static bool gameOver = false;
     private static int currentLevel = 1;
 
     public bool isTetrisMode = true;
+    public bool goingPlatformer = false;
 
     void Start()
     {
@@ -389,7 +390,7 @@ public class SpawnManager : MonoBehaviour
             timer.SetActive(false);
         }        
         
-        TimerManager.remainingTime = 15f;
+        TimerManager.remainingTime = 20f;
         DisablePlayerProtectionBlocks();
 
         player.SetActive(true);
@@ -400,6 +401,7 @@ public class SpawnManager : MonoBehaviour
         {
             camCtrlEnable.EnablePlatformerMode(player.transform);
         }
+        spawnedTetrominoCount = 0;
     }
 
     void DisablePlayerProtectionBlocks()
@@ -457,27 +459,30 @@ public class SpawnManager : MonoBehaviour
 
     public void SwitchToTetris()
     {
-        if(!isTetrisMode){
-        if (gameOver)
+        if (!isTetrisMode)
         {
-            Debug.Log("Game Over! Cannot switch back to Tetris mode.");
-            return;
-        }
-        
-        player.SetActive(false);
-        timer.SetActive(false);
-        DestroyPlayerProtectionBlocks();
+            if (gameOver)
+            {
+                Debug.Log("Game Over! Cannot switch back to Tetris mode.");
+                return;
+            }
 
-        PlaceBlocksAroundPlayer();
+            goingPlatformer = false;
 
-        Spawn();
+            player.SetActive(false);
+            timer.SetActive(false);
+            DestroyPlayerProtectionBlocks();
 
-        CameraController camCtrlDisable = FindObjectOfType<CameraController>();
-        if (camCtrlDisable != null)
-        {
-            camCtrlDisable.DisablePlatformerMode();
-        }
-        isTetrisMode = true;
+            PlaceBlocksAroundPlayer();
+
+            Spawn();
+
+            CameraController camCtrlDisable = FindObjectOfType<CameraController>();
+            if (camCtrlDisable != null)
+            {
+                camCtrlDisable.DisablePlatformerMode();
+            }
+            isTetrisMode = true;
         }
     }
     
@@ -714,6 +719,10 @@ public class SpawnManager : MonoBehaviour
                 block.layer = 11;
                 break;
         }
+    }
+    public void SwitchToPlat()
+    {
+        goingPlatformer = true;
     }
 }
 
