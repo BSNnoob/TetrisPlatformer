@@ -59,6 +59,7 @@ public class SpawnManager : MonoBehaviour
     public bool isTetrisMode = true;
     public bool goingPlatformer = false;
     public Text tetrominoLeft;
+    public Animator SwitchAnimator;
 
     void Start()
     {
@@ -109,6 +110,14 @@ public class SpawnManager : MonoBehaviour
             {
                 HoldCurrentPiece();
             }
+        }
+
+        if (goingPlatformer)
+        {
+            SwitchAnimator.SetBool("Play", true);
+        }else
+        {
+            SwitchAnimator.SetBool("Play", false);
         }
     }
 
@@ -386,6 +395,8 @@ public class SpawnManager : MonoBehaviour
 
     public void Switch()
     {
+        goingPlatformer = false;
+        SwitchAnimator.SetBool("Play", false);
         isTetrisMode = false;
         if (gameOver)
         {
@@ -468,8 +479,6 @@ public class SpawnManager : MonoBehaviour
                 Debug.Log("Game Over! Cannot switch back to Tetris mode.");
                 return;
             }
-
-            goingPlatformer = false;
 
             player.SetActive(false);
             timer.SetActive(false);
@@ -725,6 +734,7 @@ public class SpawnManager : MonoBehaviour
     public void SwitchToPlat()
     {
         goingPlatformer = true;
+        SwitchAnimator.SetBool("Play", true);
     }
 }
 
